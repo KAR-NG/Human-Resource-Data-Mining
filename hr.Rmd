@@ -1,0 +1,100 @@
+---
+title: "Human Resources Data Analysis using Principal Component Methods"
+author: "Kar Ng"
+date: '2022-05'
+output: 
+  github_document: 
+    toc: true
+    toc_depth: 4
+always_allow_html: yes
+---
+
+
+## SUMMARY
+
+
+
+## R Libraries 
+
+```{r}
+library(tidyverse)
+library(kableExtra)
+
+
+```
+
+
+
+## INTRODUCTION
+
+This project analyses a set of human resource data by applying one of the core machine learning technique, "Principal Components (PC) methods", which belong to the "unsupervised" branch of machine learning domain. 
+
+There are 5 types of principal components methods:
+
+* Principal Component Analysis (PCA)    
+* Correspondence Analysis (CA)    
+* Multiple Correspondence Analysis (MCA)  
+* Factor Analysis of Mixed Data (FAMD)  
+* Multiple Factor Analysis (MFA)  
+
+These PC methods are designed for different type of datasets, I would not explain why and how are these methods different from each other here and for which type of datasets but I will apply the most appropriate one for the dataset used in this project.
+
+Principal component methods are typically used for multivariate analysis (MVA) when we are analysing datasets that have many variables. PC methods will quickly help us identifying the most important variables that contribute the most in explaining the variations in the data sets. 
+
+During computation, PC methods will extract all the variations in the multivariate dataframe and expressed them into a few new variables called principal components (there are other inter-changeable terms with similar meaning in this context, such as "dims" or "axes"). After previous step, many special plots of PC will be plotted to understand the result. Important to note that the goal of PC methods is to identify main directions along which the variation is maximal (KASSAMBARA A 2017). 
+
+
+## DATA PREPARATION
+
+A public dataset called "Human Resources Data Set" by DR.RICH on Kaggle.com has been downloaded for analysis. *Kaggle.com* is a popular website for data science community to share datasets, codes and knowledge. 
+
+This dataset 
+
+### DATA IMPORT
+
+Following code upload the dataset into R.
+
+```{r}
+hr <- read.csv("hr_dataset.csv", header = T,
+               fileEncoding = "UTF-8-BOM", 
+               row.names = 1, 
+               na.strings = T)
+
+```
+
+### DATA DESCRIPTION
+
+```{r}
+variable <- c("EmpID", "MarriedID", "MaritalStatusID", "EmpStatusID", 
+              "DeptID", "PerfScoreID", "FromDiversityJobFairID", "Salary", "Termd",
+              "PositionID", "Position", "State", "Zip", "DOB", "Sex", "MaritalDesc", "CitizenDesc", "HispanicLatino", "RaceDesc", "DateofHire", "DateofTermination", "TermReason", "EmploymentStatus", "Department", "ManagerName", "ManagerID", "RecruitmentSource", "PerformanceScore", "EngagementSurvey", "EmpSatisfaction", "SpecialProjectsCount", "LastPerformanceReviewDate", "DaysLateLast30", "Absences")
+  
+  
+description <- c("Employee ID is unique to each employee")
+
+```
+
+### DATA EXPLORATION
+
+```{r}
+
+
+```
+## DATA CLEANING
+
+### Missing data check
+
+
+### Outliers
+
+### Class imbalance
+
+
+
+
+
+## REFERENCE
+
+KASSAMBARA A 2017, *Practical Guide To Principal Component Methods in R*, Edition 1, sthda.com
+
+DR.RICH 2020, *Human Resources Data Set*, viewed 2 May 2022, https://www.kaggle.com/datasets/rhuebner/human-resources-data-set?resource=download 
