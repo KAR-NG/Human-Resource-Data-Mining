@@ -10,22 +10,24 @@ always_allow_html: yes
 ---
 
 
-## SUMMARY
+## 1 SUMMARY
 
 
 
-## R Libraries 
+## 2 R PACKAGES 
 
 ```{r}
 library(tidyverse)
 library(kableExtra)
+library(lubridate)
+library(skimr)
 
 
 ```
 
 
 
-## INTRODUCTION
+## 3 INTRODUCTION
 
 This project analyses a set of human resource data by applying one of the core machine learning technique, "Principal Components (PC) methods", which belong to the "unsupervised" branch of machine learning domain. 
 
@@ -44,13 +46,13 @@ Principal component methods are typically used for multivariate analysis (MVA) w
 During computation, PC methods will extract all the variations in the multivariate dataframe and expressed them into a few new variables called principal components (there are other inter-changeable terms with similar meaning in this context, such as "dims" or "axes"). After previous step, many special plots of PC will be plotted to understand the result. Important to note that the goal of PC methods is to identify main directions along which the variation is maximal (KASSAMBARA A 2017). 
 
 
-## DATA PREPARATION
+## 4 DATA PREPARATION
 
 A public dataset called "Human Resources Data Set" by DR.RICH on Kaggle.com has been downloaded for analysis. *Kaggle.com* is a popular website for data science community to share datasets, codes and knowledge. 
 
 This dataset 
 
-### DATA IMPORT
+### 4.1 Data import
 
 Following code upload the dataset into R.
 
@@ -62,33 +64,225 @@ hr <- read.csv("hr_dataset.csv", header = T,
 
 ```
 
-### DATA DESCRIPTION
+### 4.2 Data description
+
+Following is the data dictionary/description of this dataset, downloaded from this link: [Rpubs](https://rpubs.com/rhuebner/hrd_cb_v14), created by the author, Dr. Rich Huebner.
+
+![Data description](https://raw.githubusercontent.com/KAR-NG/hr/main/pic1_data_description.png)
+
+### 4.3 Data exploration
+
+There are 311 rows and 35 columns in the dataset. Following show the variable "type" allocated by R to each of the column (also known as variables or features), along with several starting values of these variables.
 
 ```{r}
-variable <- c("EmpID", "MarriedID", "MaritalStatusID", "EmpStatusID", 
-              "DeptID", "PerfScoreID", "FromDiversityJobFairID", "Salary", "Termd",
-              "PositionID", "Position", "State", "Zip", "DOB", "Sex", "MaritalDesc", "CitizenDesc", "HispanicLatino", "RaceDesc", "DateofHire", "DateofTermination", "TermReason", "EmploymentStatus", "Department", "ManagerName", "ManagerID", "RecruitmentSource", "PerformanceScore", "EngagementSurvey", "EmpSatisfaction", "SpecialProjectsCount", "LastPerformanceReviewDate", "DaysLateLast30", "Absences")
-  
-  
-description <- c("Employee ID is unique to each employee")
+glimpse(hr)
+
+```
+Randomly sample 10 rows of data from the table:
+
+```{r}
+sample_n(hr, 10)
 
 ```
 
-### DATA EXPLORATION
+The first column is a column recording employee names. I have made this column the name of each rows (or known as observation). It is the standard format required for PC methods.  
+
+## 5 DATA CLEANING
+
+The data may seem perfectly to go however numerous important cleaning and manipulation tasks have been identified and will be perfectly completed in this section. 
+
+### 5.1 Variables removals
+
+I will be removing some irrelevant or repeated variables that may not help in our analysis to understand the hidden trends in the data. They are:
+
+* EmpID  
+* MaritalStatusID  
+* GenderID  
+* EmpStatusID  
+* DeptID  
+* PerfScoreID  
+* PositionID  
+* Zip  
+* ManagerID  
+* LastPerformanceReview_Date
+
+After removal of above features, the numbers of columns have been reduced from 35 to 25. 
+
+```{r}
+hr2 <- hr %>%
+  dplyr::select(-EmpID, -MaritalStatusID, -GenderID, -EmpStatusID, -DeptID, -PerfScoreID, -PositionID, -Zip, -ManagerID, -LastPerformanceReview_Date)
+  
+glimpse(hr2)
+
+```
+### 5.2 New Variable: Age
+
+At the year of writing this project is 2022, and therefore the calculation of age will be 2022 minus DOB (date of birth) in the dataset. The DOB will be replaced with "Age".
+
+
+```{r}
+hr2 <- hr2 %>%  
+  mutate(yearDOB = substr(DOB, start = 7, stop = 8),
+         yearbirth = as.numeric(paste0(19, yearDOB)),
+         Age = 2022 - yearbirth) %>%   
+  relocate(Age, .after = State) %>% 
+  dplyr::select(-DOB, -yearDOB, -yearbirth)
+
+```
+
+
+Now, the variable "DOB" has been replaced by "Age", 7th variable, and following shows the age of all employees in the dataset. 
+
+```{r}
+hr2$Age
+```
+
+### 5.3 New Variable: years_worked
+
+There are two variables in the date set: DateofHire and DateofTermination. 
+
+I will compute the days of each employee worked/works by using the date of termination (DateofTermination) minus date of hire (DateofHire), and for present employee I will use today's date (5-May-2022) minus the date of hire to obtain the total number of days worked. 
 
 ```{r}
 
+hr2 <- hr2 %>% 
+  mutate(DateofHire = mdy(DateofHire),
+         DateofTermination = mdy(DateofTermination),
+         days_worked = ifelse(is.na(DateofTermination),
+                              today() - DateofHire,
+                              DateofTermination - DateofHire),
+         years_worked = round(days_worked/365, 1)) %>% 
+  relocate(years_worked, .after = RaceDesc) %>% 
+  dplyr::select(-DateofHire, -DateofTermination, -days_worked)
 
 ```
-## DATA CLEANING
 
-### Missing data check
+Following shows number of years, with 1 decimal place, worked by each employee in the dataset. 
+
+```{r}
+hr2$years_worked
+
+```
+
+### 5.4 Trim
+
+This section trim the unnecessary leading and trailing whitespaces of character variables in the dataset. 
+
+```{r}
+hr2 <- hr2 %>% 
+  mutate_if(is.character, trimws)
+
+```
 
 
-### Outliers
 
-### Class imbalance
+### 5.5 Factor conversion
 
+Some "numeric" and "textual" features will need to be converted into "factor" type because of their categorical nature. 
+
+* All textual features that formed by character "chr" in the dataset need conversion. Following shows all of these textual variables in the datasets.       
+
+```{r}
+str(hr2 %>% 
+  select(is.character))
+
+```
+Following codes complete the conversion task for these textual features. 
+
+```{r}
+hr2 <- hr2 %>% 
+  mutate_if(is.character, as.factor)
+
+```
+
+* With regards to numeric features, features that need to be converted into factor type are MarriedID, FromDiversityJobFairID, Termd, and EmpSatisfaction.
+
+```{r}
+str(hr2 %>% 
+      select(-is.factor))
+
+```
+Following codes complete the conversion task for these selected numerical features.  
+
+```{r}
+hr2 <- hr2 %>% 
+  mutate(MarriedID = as.factor(MarriedID),
+         FromDiversityJobFairID = as.factor(FromDiversityJobFairID),
+         Termd = as.factor(Termd),
+         EmpSatisfaction = as.factor(EmpSatisfaction))
+
+```
+
+After conversion, we are able to use following code to summaries the dataset. For example, there are 187 of "0" and 124 of "1" for Married ID. The type of this variable has to be in factor form to make this summary feasible. 
+
+Different categories (or known as "level") in each factor variables are now feasible and countable.
+
+```{r}
+summary(hr2 %>% 
+          dplyr::select(is.factor))
+
+```
+
+### 5.6 Missing data check
+
+This section check missing data ("NA") in the dataset and will be managed accordingly. 
+
+```{r}
+skim_without_charts(hr2)
+```
+From the above function, there is no any missing data detected by the column "n_missing" or by the column "complete_rate".
+
+Alternatively, I can count the number of missing value ("NA") in each column by following code. 
+
+```{r}
+colSums(is.na(hr2))
+
+```
+
+There is no any missing data detected.
+
+
+## 6 VISUALISATION
+
+This section will help to understand data distribution of each variable and more importantly, to detect outliers.
+
+There are different type of outliers, some outliers may arise from typos but some may be real outliers. For example, executive members may have significant higher salary than most of the employees. This section will find and deal with false outliers, which are those that may be resulted from human errors. 
+
+The true outliers would not be an issue in this project, because principal components methods will scale all numerical variables to make all variables comparable, and therefore this step, known as standardisation, will transform these true outliers. 
+
+### 6.1 Numerical variables
+
+Insights from following summary:
+
+* Absences 
+
+```{r}
+# df
+
+df6.1 <- hr2 %>% 
+  dplyr::select(-is.factor) %>% 
+  pivot_longer(1:7, names_to = "my_var", values_to = "my_values")
+
+# graph
+
+ggplot(df6.1, aes(x = my_values, fill = my_var)) +
+  geom_histogram(color = "black") +
+  facet_wrap(~my_var, scales = "free") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+
+```
+
+
+
+
+
+
+
+## MACHINE LEARNING (PC METHODS)
+
+### 
 
 
 
@@ -97,4 +291,7 @@ description <- c("Employee ID is unique to each employee")
 
 KASSAMBARA A 2017, *Practical Guide To Principal Component Methods in R*, Edition 1, sthda.com
 
-DR.RICH 2020, *Human Resources Data Set*, viewed 2 May 2022, https://www.kaggle.com/datasets/rhuebner/human-resources-data-set?resource=download 
+Rich Huebner 2020, *Human Resources Data Set*, viewed 2 May 2022, https://www.kaggle.com/datasets/rhuebner/human-resources-data-set?resource=download 
+
+Rich Huebner 2021, *Codebook - HR Dataset v14*, viewed 3 May 2022, https://rpubs.com/rhuebner/hrd_cb_v14
+
