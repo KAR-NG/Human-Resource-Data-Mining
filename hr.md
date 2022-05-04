@@ -16,9 +16,12 @@ Kar Ng
     -   [5.3 New Variable: years_worked](#53-new-variable-years_worked)
     -   [5.4 Trim](#54-trim)
     -   [5.5 Factor conversion](#55-factor-conversion)
-    -   [5.6 Missing data check](#56-missing-data-check)
+    -   [5.6 CitizenDesc](#56-citizendesc)
+    -   [5.7 HispanicLatino](#57-hispaniclatino)
+    -   [5.8 Missing data check](#58-missing-data-check)
 -   [6 VISUALISATION](#6-visualisation)
     -   [6.1 Numerical variables](#61-numerical-variables)
+    -   [6.2 factor variables 1](#62-factor-variables-1)
 -   [MACHINE LEARNING (PC METHODS)](#machine-learning-pc-methods)
     -   [](#section)
 -   [REFERENCE](#reference)
@@ -29,43 +32,10 @@ Kar Ng
 
 ``` r
 library(tidyverse)
-```
-
-    ## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
-
-    ## v ggplot2 3.3.5     v purrr   0.3.4
-    ## v tibble  3.1.4     v dplyr   1.0.7
-    ## v tidyr   1.1.3     v stringr 1.4.0
-    ## v readr   2.0.1     v forcats 0.5.1
-
-    ## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
-    ## x dplyr::filter() masks stats::filter()
-    ## x dplyr::lag()    masks stats::lag()
-
-``` r
 library(kableExtra)
-```
-
-    ## 
-    ## Attaching package: 'kableExtra'
-
-    ## The following object is masked from 'package:dplyr':
-    ## 
-    ##     group_rows
-
-``` r
 library(lubridate)
-```
-
-    ## 
-    ## Attaching package: 'lubridate'
-
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     date, intersect, setdiff, union
-
-``` r
 library(skimr)
+library(tidytext)
 ```
 
 ## 3 INTRODUCTION
@@ -186,116 +156,116 @@ Randomly sample 10 rows of data from the table:
 sample_n(hr, 10)
 ```
 
-    ##                     EmpID MarriedID MaritalStatusID GenderID EmpStatusID DeptID
-    ## Desimone, Carl      10310         1               1        1           1      5
-    ## Lunquist, Lisa      10035         0               0        0           1      5
-    ## Navathe, Kurt       10079         0               0        1           1      3
-    ## Owad, Clinton       10281         0               0        1           1      5
-    ## Biden, Lowan  M     10226         0               2        0           1      5
-    ## Fancett, Nicole     10136         0               0        0           1      5
-    ## Salter, Jason       10229         0               2        1           5      3
-    ## Smith, Leigh Ann    10153         1               1        0           5      1
-    ## Handschiegl, Joanne 10125         1               1        0           1      5
-    ## Robinson, Cherly    10285         1               1        0           4      5
-    ##                     PerfScoreID FromDiversityJobFairID Salary Termd PositionID
-    ## Desimone, Carl                1                      0  53189     0         19
-    ## Lunquist, Lisa                4                      0  73330     0         20
-    ## Navathe, Kurt                 3                      0  87921     0         22
-    ## Owad, Clinton                 2                      0  53060     0         19
-    ## Biden, Lowan  M               3                      0  64919     0         19
-    ## Fancett, Nicole               3                      0  65902     0         20
-    ## Salter, Jason                 3                      0  88527     1          9
-    ## Smith, Leigh Ann              3                      1  55000     1          2
-    ## Handschiegl, Joanne           3                      0  54828     0         19
-    ## Robinson, Cherly              2                      0  61422     1         19
-    ##                                     Position State  Zip      DOB Sex
-    ## Desimone, Carl       Production Technician I    MA 2061 04/19/67  M 
-    ## Lunquist, Lisa      Production Technician II    MA 2324 03/28/82   F
-    ## Navathe, Kurt            Senior BI Developer    MA 2056 04/25/70  M 
-    ## Owad, Clinton        Production Technician I    MA 1760 11/24/79  M 
-    ## Biden, Lowan  M      Production Technician I    MA 2027 12/27/58   F
-    ## Fancett, Nicole     Production Technician II    MA 2324 09/27/87   F
-    ## Salter, Jason                  Data Analyst     MA 2452 12/17/87  M 
-    ## Smith, Leigh Ann    Administrative Assistant    MA 1844 06/14/87   F
-    ## Handschiegl, Joanne  Production Technician I    MA 2127 03/23/77   F
-    ## Robinson, Cherly     Production Technician I    MA 1460 01/07/85   F
-    ##                     MaritalDesc CitizenDesc HispanicLatino
-    ## Desimone, Carl          Married  US Citizen             No
-    ## Lunquist, Lisa           Single  US Citizen             No
-    ## Navathe, Kurt            Single  US Citizen             No
-    ## Owad, Clinton            Single  US Citizen             No
-    ## Biden, Lowan  M        Divorced  US Citizen             No
-    ## Fancett, Nicole          Single  US Citizen             No
-    ## Salter, Jason          Divorced  US Citizen             No
-    ## Smith, Leigh Ann        Married  US Citizen             No
-    ## Handschiegl, Joanne     Married  US Citizen             No
-    ## Robinson, Cherly        Married  US Citizen             No
-    ##                                      RaceDesc DateofHire DateofTermination
-    ## Desimone, Carl                          White   7/7/2014                  
-    ## Lunquist, Lisa      Black or African American  8/19/2013                  
-    ## Navathe, Kurt                           Asian  2/10/2017                  
-    ## Owad, Clinton       Black or African American  2/17/2014                  
-    ## Biden, Lowan  M                         Asian  8/19/2013                  
-    ## Fancett, Nicole     Black or African American  2/17/2014                  
-    ## Salter, Jason       Black or African American   1/5/2015        10/31/2015
-    ## Smith, Leigh Ann    Black or African American  9/26/2011         9/25/2013
-    ## Handschiegl, Joanne                     White 11/28/2011                  
-    ## Robinson, Cherly                        White  1/10/2011         5/17/2016
-    ##                            TermReason       EmploymentStatus        Department
-    ## Desimone, Carl      N/A-StillEmployed                 Active Production       
-    ## Lunquist, Lisa      N/A-StillEmployed                 Active Production       
-    ## Navathe, Kurt       N/A-StillEmployed                 Active             IT/IS
-    ## Owad, Clinton       N/A-StillEmployed                 Active Production       
-    ## Biden, Lowan  M     N/A-StillEmployed                 Active Production       
-    ## Fancett, Nicole     N/A-StillEmployed                 Active Production       
-    ## Salter, Jason                   hours Voluntarily Terminated             IT/IS
-    ## Smith, Leigh Ann        career change Voluntarily Terminated     Admin Offices
-    ## Handschiegl, Joanne N/A-StillEmployed                 Active Production       
-    ## Robinson, Cherly           attendance   Terminated for Cause Production       
-    ##                            ManagerName ManagerID  RecruitmentSource
-    ## Desimone, Carl                Amy Dunn        11             Indeed
-    ## Lunquist, Lisa            Elijiah Gray        16             Indeed
-    ## Navathe, Kurt         Brian Champaigne        13             Indeed
-    ## Owad, Clinton           Michael Albert        22           LinkedIn
-    ## Biden, Lowan  M          Ketsia Liebig        19             Indeed
-    ## Fancett, Nicole         Webster Butler        NA           LinkedIn
-    ## Salter, Jason               Simon Roup         4           LinkedIn
-    ## Smith, Leigh Ann    Brandon R. LeBlanc         1 Diversity Job Fair
-    ## Handschiegl, Joanne     Michael Albert        22      Google Search
-    ## Robinson, Cherly         Ketsia Liebig        19             Indeed
+    ##                      EmpID MarriedID MaritalStatusID GenderID EmpStatusID
+    ## LaRotonda, William   10038         0               2        1           1
+    ## Bernstein, Sean      10046         0               0        1           1
+    ## Salter, Jason        10229         0               2        1           5
+    ## Adinolfi, Wilson  K  10026         0               0        1           1
+    ## Linden, Mathew       10137         1               1        1           3
+    ## Roehrich, Bianca     10149         0               0        0           5
+    ## Jhaveri, Sneha       10060         0               3        0           1
+    ## Foss, Jason          10015         0               0        1           1
+    ## Shepard, Anita       10179         1               1        0           1
+    ## Spirea, Kelley       10090         1               1        0           1
+    ##                      DeptID PerfScoreID FromDiversityJobFairID Salary Termd
+    ## LaRotonda, William        1           3                      0  64520     0
+    ## Bernstein, Sean           5           3                      0  51044     0
+    ## Salter, Jason             3           3                      0  88527     1
+    ## Adinolfi, Wilson  K       5           4                      0  62506     0
+    ## Linden, Mathew            5           3                      0  63450     0
+    ## Roehrich, Bianca          3           3                      0 120000     1
+    ## Jhaveri, Sneha            5           3                      0  60436     0
+    ## Foss, Jason               3           4                      0 178000     0
+    ## Shepard, Anita            3           3                      0  50750     0
+    ## Spirea, Kelley            5           3                      0  65714     0
+    ##                      PositionID                 Position State  Zip      DOB
+    ## LaRotonda, William            1             Accountant I    MA 1460 04/26/84
+    ## Bernstein, Sean              19  Production Technician I    MA 2072 12/22/70
+    ## Salter, Jason                 9            Data Analyst     MA 2452 12/17/87
+    ## Adinolfi, Wilson  K          19  Production Technician I    MA 1960 07/10/83
+    ## Linden, Mathew               20 Production Technician II    MA 1770 03/19/79
+    ## Roehrich, Bianca             29 Principal Data Architect    MA 2703 05/27/73
+    ## Jhaveri, Sneha               19  Production Technician I    MA 2109 04/13/64
+    ## Foss, Jason                  12              IT Director    MA 1460 07/05/80
+    ## Shepard, Anita               15         Network Engineer    MA 1773 04/14/81
+    ## Spirea, Kelley               18       Production Manager    MA 2451 09/30/75
+    ##                      Sex MaritalDesc CitizenDesc HispanicLatino
+    ## LaRotonda, William    M     Divorced  US Citizen             No
+    ## Bernstein, Sean       M       Single  US Citizen            Yes
+    ## Salter, Jason         M     Divorced  US Citizen             No
+    ## Adinolfi, Wilson  K   M       Single  US Citizen             No
+    ## Linden, Mathew        M      Married  US Citizen             No
+    ## Roehrich, Bianca       F      Single  US Citizen            Yes
+    ## Jhaveri, Sneha         F   Separated  US Citizen             No
+    ## Foss, Jason           M       Single  US Citizen             No
+    ## Shepard, Anita         F     Married  US Citizen             No
+    ## Spirea, Kelley         F     Married  US Citizen             No
+    ##                                       RaceDesc DateofHire DateofTermination
+    ## LaRotonda, William   Black or African American   1/6/2014                  
+    ## Bernstein, Sean                          White   4/2/2012                  
+    ## Salter, Jason        Black or African American   1/5/2015        10/31/2015
+    ## Adinolfi, Wilson  K                      White   7/5/2011                  
+    ## Linden, Mathew                           White   7/8/2013                  
+    ## Roehrich, Bianca                         White   1/5/2015        11/10/2018
+    ## Jhaveri, Sneha                           White   1/6/2014                  
+    ## Foss, Jason          Black or African American  4/15/2011                  
+    ## Shepard, Anita                           White  9/30/2014                  
+    ## Spirea, Kelley                           White  10/2/2012                  
+    ##                             TermReason       EmploymentStatus        Department
+    ## LaRotonda, William   N/A-StillEmployed                 Active     Admin Offices
+    ## Bernstein, Sean      N/A-StillEmployed                 Active Production       
+    ## Salter, Jason                    hours Voluntarily Terminated             IT/IS
+    ## Adinolfi, Wilson  K  N/A-StillEmployed                 Active Production       
+    ## Linden, Mathew       N/A-StillEmployed                 Active Production       
+    ## Roehrich, Bianca      Another position Voluntarily Terminated             IT/IS
+    ## Jhaveri, Sneha       N/A-StillEmployed                 Active Production       
+    ## Foss, Jason          N/A-StillEmployed                 Active             IT/IS
+    ## Shepard, Anita       N/A-StillEmployed                 Active             IT/IS
+    ## Spirea, Kelley       N/A-StillEmployed                 Active Production       
+    ##                             ManagerName ManagerID RecruitmentSource
+    ## LaRotonda, William   Brandon R. LeBlanc         1           Website
+    ## Bernstein, Sean                Amy Dunn        11     Google Search
+    ## Salter, Jason                Simon Roup         4          LinkedIn
+    ## Adinolfi, Wilson  K      Michael Albert        22          LinkedIn
+    ## Linden, Mathew            Kelley Spirea        18          LinkedIn
+    ## Roehrich, Bianca             Simon Roup         4          LinkedIn
+    ## Jhaveri, Sneha            Kelley Spirea        18          LinkedIn
+    ## Foss, Jason             Jennifer Zamora         5            Indeed
+    ## Shepard, Anita             Peter Monroe         7          LinkedIn
+    ## Spirea, Kelley               Janet King         2          LinkedIn
     ##                      PerformanceScore EngagementSurvey EmpSatisfaction
-    ## Desimone, Carl                    PIP             1.12               2
-    ## Lunquist, Lisa                Exceeds             4.20               4
-    ## Navathe, Kurt             Fully Meets             5.00               3
-    ## Owad, Clinton       Needs Improvement             4.25               3
-    ## Biden, Lowan  M           Fully Meets             4.20               3
-    ## Fancett, Nicole           Fully Meets             4.00               4
+    ## LaRotonda, William        Fully Meets             5.00               4
+    ## Bernstein, Sean           Fully Meets             5.00               3
     ## Salter, Jason             Fully Meets             4.20               3
-    ## Smith, Leigh Ann          Fully Meets             3.80               4
-    ## Handschiegl, Joanne       Fully Meets             4.20               4
-    ## Robinson, Cherly    Needs Improvement             3.60               3
-    ##                     SpecialProjectsCount LastPerformanceReview_Date
-    ## Desimone, Carl                         0                  1/31/2019
-    ## Lunquist, Lisa                         0                  2/12/2019
-    ## Navathe, Kurt                          6                  2/25/2019
-    ## Owad, Clinton                          0                   2/4/2019
-    ## Biden, Lowan  M                        0                  1/10/2019
-    ## Fancett, Nicole                        0                   1/7/2019
-    ## Salter, Jason                          5                  4/20/2015
-    ## Smith, Leigh Ann                       4                  8/15/2013
-    ## Handschiegl, Joanne                    0                  2/22/2019
-    ## Robinson, Cherly                       0                   4/5/2016
-    ##                     DaysLateLast30 Absences
-    ## Desimone, Carl                   4        9
-    ## Lunquist, Lisa                   0       19
-    ## Navathe, Kurt                    0       17
-    ## Owad, Clinton                    4        6
-    ## Biden, Lowan  M                  0        2
-    ## Fancett, Nicole                  0        7
-    ## Salter, Jason                    0        2
-    ## Smith, Leigh Ann                 0       17
-    ## Handschiegl, Joanne              0       13
-    ## Robinson, Cherly                 4       16
+    ## Adinolfi, Wilson  K           Exceeds             4.60               5
+    ## Linden, Mathew            Fully Meets             4.00               3
+    ## Roehrich, Bianca          Fully Meets             3.88               3
+    ## Jhaveri, Sneha            Fully Meets             5.00               5
+    ## Foss, Jason                   Exceeds             5.00               5
+    ## Shepard, Anita            Fully Meets             3.31               3
+    ## Spirea, Kelley            Fully Meets             4.83               5
+    ##                      SpecialProjectsCount LastPerformanceReview_Date
+    ## LaRotonda, William                      4                  1/17/2019
+    ## Bernstein, Sean                         0                  1/14/2019
+    ## Salter, Jason                           5                  4/20/2015
+    ## Adinolfi, Wilson  K                     0                  1/17/2019
+    ## Linden, Mathew                          0                  2/18/2019
+    ## Roehrich, Bianca                        7                  2/13/2018
+    ## Jhaveri, Sneha                          0                  1/21/2019
+    ## Foss, Jason                             5                   1/7/2019
+    ## Shepard, Anita                          6                   1/7/2019
+    ## Spirea, Kelley                          0                  2/14/2019
+    ##                      DaysLateLast30 Absences
+    ## LaRotonda, William                0        3
+    ## Bernstein, Sean                   0       13
+    ## Salter, Jason                     0        2
+    ## Adinolfi, Wilson  K               0        1
+    ## Linden, Mathew                    0        7
+    ## Roehrich, Bianca                  0       12
+    ## Jhaveri, Sneha                    0        9
+    ## Foss, Jason                       0       15
+    ## Shepard, Anita                    0        7
+    ## Spirea, Kelley                    0       15
 
 The first column is a column recording employee names. I have made this
 column the name of each rows (or known as observation). It is the
@@ -604,7 +574,63 @@ summary(hr2 %>%
     ##  CareerBuilder     :23                                               
     ##  (Other)           :16
 
-### 5.6 Missing data check
+### 5.6 CitizenDesc
+
+There are three categories for the variable “CitizenDesc”, Eligible
+NonCitizen (12 employees), Non-Citizen (4 employees) and 295 US Citizen
+employees. I can’t see why I can’t merge “Eligible NonCitizen” and
+“Non-Citizen”, and therefore this section will perform this task. 12 of
+the “Eligible NonCitizen” will be grouped to “Non-Citizen”.
+
+``` r
+hr2 <- hr2 %>% 
+  mutate(CitizenDesc = fct_recode(CitizenDesc,
+                                  "Non-Citizen" = "Eligible NonCitizen"))
+```
+
+Let’s check, and the conversion has been completed.
+
+``` r
+table(hr2$CitizenDesc)
+```
+
+    ## 
+    ## Non-Citizen  US Citizen 
+    ##          16         295
+
+### 5.7 HispanicLatino
+
+The HispanicLatino has following 4 categories.
+
+``` r
+table(hr2$HispanicLatino)
+```
+
+    ## 
+    ##  no  No yes Yes 
+    ##   1 282   1  27
+
+The “no” and “Yes” should be a mistake and have to be converted to “No”
+and “Yes”. Following code complete the conversion.
+
+``` r
+hr2 <- hr2 %>% 
+  mutate(HispanicLatino = fct_recode(HispanicLatino,
+                                  "No" = "no",
+                                  "Yes" = "yes"))
+```
+
+Let’s check, and the conversion has been completed.
+
+``` r
+table(hr2$HispanicLatino)
+```
+
+    ## 
+    ##  No Yes 
+    ## 283  28
+
+### 5.8 Missing data check
 
 This section check missing data (“NA”) in the dataset and will be
 managed accordingly.
@@ -878,10 +904,10 @@ CitizenDesc
 FALSE
 </td>
 <td style="text-align:right;">
-3
+2
 </td>
 <td style="text-align:left;">
-US : 295, Eli: 12, Non: 4
+US : 295, Non: 16
 </td>
 </tr>
 <tr>
@@ -898,10 +924,10 @@ HispanicLatino
 FALSE
 </td>
 <td style="text-align:right;">
-4
+2
 </td>
 <td style="text-align:left;">
-No: 282, Yes: 27, no: 1, yes: 1
+No: 283, Yes: 28
 </td>
 </tr>
 <tr>
@@ -1370,18 +1396,24 @@ There are different type of outliers, some outliers may arise from typos
 but some may be real outliers. For example, executive members may have
 significant higher salary than most of the employees. This section will
 find and deal with false outliers, which are those that may be resulted
-from human errors.
-
-The true outliers would not be an issue in this project, because
-principal components methods will scale all numerical variables to make
-all variables comparable, and therefore this step, known as
-standardisation, will transform these true outliers.
+from human errors. The true outliers would not be an issue in this
+project, because principal components methods will scale all numerical
+variables to make all variables comparable, and therefore this step,
+known as standardisation, will transform these true outliers.
 
 ### 6.1 Numerical variables
 
 Insights from following summary:
 
--   Absences
+-   All employees have their days of absences for worked evenly
+    distributed between 0 to 20  
+-   Most employees have age between 32 to 55  
+-   Employees were very on time to work but except a few  
+-   Employees were very engaging with majority of the scores fall
+    between 4 to 5  
+-   Typical salary range between 50k to 70k approximately  
+-   There are a small number of employees had many special projects  
+-   Most employees from this company worked between 5 to 10 years
 
 ``` r
 # df
@@ -1396,12 +1428,81 @@ ggplot(df6.1, aes(x = my_values, fill = my_var)) +
   geom_histogram(color = "black") +
   facet_wrap(~my_var, scales = "free") +
   theme_bw() +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "Visualisation of Numerical variables",
+       subtitle = "by Histogram",
+       x = "Variables",
+       y = "Count")
 ```
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](hr_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+![](hr_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+
+### 6.2 factor variables 1
+
+There are 17 factor variables to look at, I have spread this examination
+into two parts. In this part “factor variables 1”, I will look at the
+first 8 factor variables and examine the remaining in next section.
+
+``` r
+# df
+
+df6.2 <- hr2 %>% 
+  dplyr::select(is.factor) %>% 
+  dplyr::select(-Position) %>% 
+  pivot_longer(1:8, names_to = "my_var", values_to = "my_values") %>% 
+  group_by(my_var, my_values) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  mutate(label = reorder_within(x = my_values, by = count, within = my_var))
+```
+
+    ## `summarise()` has grouped output by 'my_var'. You can override using the
+    ## `.groups` argument.
+
+``` r
+# graph
+
+ggplot(df6.2, aes(y = label, x = count, fill = my_values)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = count)) +
+  facet_wrap(~my_var, scales = "free", ) +
+  theme_bw() +
+  theme(legend.position = "none",
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  scale_y_reordered() +
+  labs(title = "Visualisation of factor variables 1",
+       subtitle = "by Bar chart",
+       y = "Variables",
+       x = "Count")
+```
+
+![](hr_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+
+Following shows the number of workers in each position in the
+organisation.
+
+``` r
+hr2 %>% 
+  dplyr::select(Position) %>% 
+  group_by(Position) %>% 
+  summarise(count = n()) %>% 
+  ggplot(aes(y = fct_reorder(Position, count), x = count)) +
+  geom_bar(stat = "identity") +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "Visualisation of factor variables 1",
+       subtitle = "by Bar chart",
+       y = "Variables",
+       x = "Count") +
+  theme_bw()
+```
+
+![](hr_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
 
 ## MACHINE LEARNING (PC METHODS)
 

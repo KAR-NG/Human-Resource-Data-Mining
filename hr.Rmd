@@ -16,12 +16,13 @@ always_allow_html: yes
 
 ## 2 R PACKAGES 
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
+
 library(tidyverse)
 library(kableExtra)
 library(lubridate)
 library(skimr)
-
+library(tidytext)
 
 ```
 
@@ -223,7 +224,50 @@ summary(hr2 %>%
 
 ```
 
-### 5.6 Missing data check
+### 5.6 CitizenDesc
+
+There are three categories for the variable "CitizenDesc", Eligible NonCitizen (12 employees), Non-Citizen (4 employees) and 295 US Citizen employees. I can't see why I can't merge "Eligible NonCitizen" and "Non-Citizen", and therefore this section will perform this task. 12 of the "Eligible NonCitizen" will be grouped to "Non-Citizen". 
+
+```{r}
+hr2 <- hr2 %>% 
+  mutate(CitizenDesc = fct_recode(CitizenDesc,
+                                  "Non-Citizen" = "Eligible NonCitizen"))
+
+```
+
+Let's check, and the conversion has been completed. 
+
+```{r}
+table(hr2$CitizenDesc)
+
+```
+
+
+### 5.7 HispanicLatino
+
+The HispanicLatino has following 4 categories. 
+
+```{r}
+table(hr2$HispanicLatino)
+```
+The "no" and "Yes" should be a mistake and have to be converted to "No" and "Yes". Following code complete the conversion. 
+
+```{r}
+hr2 <- hr2 %>% 
+  mutate(HispanicLatino = fct_recode(HispanicLatino,
+                                  "No" = "no",
+                                  "Yes" = "yes"))
+```
+
+
+Let's check, and the conversion has been completed. 
+
+```{r}
+table(hr2$HispanicLatino)
+
+```
+
+### 5.8 Missing data check
 
 This section check missing data ("NA") in the dataset and will be managed accordingly. 
 
@@ -247,14 +291,19 @@ There is no any missing data detected.
 This section will help to understand data distribution of each variable and more importantly, to detect outliers.
 
 There are different type of outliers, some outliers may arise from typos but some may be real outliers. For example, executive members may have significant higher salary than most of the employees. This section will find and deal with false outliers, which are those that may be resulted from human errors. 
-
 The true outliers would not be an issue in this project, because principal components methods will scale all numerical variables to make all variables comparable, and therefore this step, known as standardisation, will transform these true outliers. 
 
 ### 6.1 Numerical variables
 
 Insights from following summary:
 
-* Absences 
+* All employees have their days of absences for worked evenly distributed between 0 to 20  
+* Most employees have age between 32 to 55  
+* Employees were very on time to work but except a few  
+* Employees were very engaging with majority of the scores fall between 4 to 5  
+* Typical salary range between 50k to 70k approximately  
+* There are a small number of employees had many special projects  
+* Most employees from this company worked between 5 to 10 years  
 
 ```{r}
 # df
@@ -269,10 +318,77 @@ ggplot(df6.1, aes(x = my_values, fill = my_var)) +
   geom_histogram(color = "black") +
   facet_wrap(~my_var, scales = "free") +
   theme_bw() +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "Visualisation of Numerical variables",
+       subtitle = "by Histogram",
+       x = "Variables",
+       y = "Count")
 
 
 ```
+
+### 6.2 factor variables 1
+
+There are 17 factor variables to look at, I have spread this examination into two parts. In this part "factor variables 1", I will look at the first 8 factor variables and examine the remaining in next section. 
+
+```{r, fig.height=9, fig.width=10}
+# df
+
+df6.2 <- hr2 %>% 
+  dplyr::select(is.factor) %>% 
+  dplyr::select(-Position) %>% 
+  pivot_longer(1:8, names_to = "my_var", values_to = "my_values") %>% 
+  group_by(my_var, my_values) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  mutate(label = reorder_within(x = my_values, by = count, within = my_var))
+
+# graph
+
+ggplot(df6.2, aes(y = label, x = count, fill = my_values)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = count)) +
+  facet_wrap(~my_var, scales = "free", ) +
+  theme_bw() +
+  theme(legend.position = "none",
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  scale_y_reordered() +
+  labs(title = "Visualisation of factor variables 1",
+       subtitle = "by Bar chart",
+       y = "Variables",
+       x = "Count")
+
+
+```
+
+Following shows the number of workers in each position in the organisation.
+
+```{r}
+hr2 %>% 
+  dplyr::select(Position) %>% 
+  group_by(Position) %>% 
+  summarise(count = n()) %>% 
+  ggplot(aes(y = fct_reorder(Position, count), x = count)) +
+  geom_bar(stat = "identity") +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "Visualisation of factor variables 1",
+       subtitle = "by Bar chart",
+       y = "Variables",
+       x = "Count") +
+  theme_bw()
+  
+
+```
+
+
+
+
+
+
 
 
 
