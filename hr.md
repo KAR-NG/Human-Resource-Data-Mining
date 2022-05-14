@@ -1,4 +1,4 @@
-Human Resources Data Analysis using Principal Component Methods
+Human Resources Data Clustering & PC Analysis
 ================
 Kar Ng
 2022-05
@@ -22,8 +22,9 @@ Kar Ng
 -   [6 VISUALISATION](#6-visualisation)
     -   [6.1 Numerical variables](#61-numerical-variables)
     -   [6.2 factor variables 1](#62-factor-variables-1)
--   [MACHINE LEARNING (PC METHODS)](#machine-learning-pc-methods)
-    -   [](#section)
+    -   [6.3 factor variables 2](#63-factor-variables-2)
+-   [7 CLUSTERING](#7-clustering)
+-   [8 PRINCIPAL COMPONENT](#8-principal-component)
 -   [REFERENCE](#reference)
 
 ## 1 SUMMARY
@@ -36,6 +37,8 @@ library(kableExtra)
 library(lubridate)
 library(skimr)
 library(tidytext)
+library(factoextra)
+library(FactoMineR)
 ```
 
 ## 3 INTRODUCTION
@@ -156,116 +159,105 @@ Randomly sample 10 rows of data from the table:
 sample_n(hr, 10)
 ```
 
-    ##                      EmpID MarriedID MaritalStatusID GenderID EmpStatusID
-    ## LaRotonda, William   10038         0               2        1           1
-    ## Bernstein, Sean      10046         0               0        1           1
-    ## Salter, Jason        10229         0               2        1           5
-    ## Adinolfi, Wilson  K  10026         0               0        1           1
-    ## Linden, Mathew       10137         1               1        1           3
-    ## Roehrich, Bianca     10149         0               0        0           5
-    ## Jhaveri, Sneha       10060         0               3        0           1
-    ## Foss, Jason          10015         0               0        1           1
-    ## Shepard, Anita       10179         1               1        0           1
-    ## Spirea, Kelley       10090         1               1        0           1
-    ##                      DeptID PerfScoreID FromDiversityJobFairID Salary Termd
-    ## LaRotonda, William        1           3                      0  64520     0
-    ## Bernstein, Sean           5           3                      0  51044     0
-    ## Salter, Jason             3           3                      0  88527     1
-    ## Adinolfi, Wilson  K       5           4                      0  62506     0
-    ## Linden, Mathew            5           3                      0  63450     0
-    ## Roehrich, Bianca          3           3                      0 120000     1
-    ## Jhaveri, Sneha            5           3                      0  60436     0
-    ## Foss, Jason               3           4                      0 178000     0
-    ## Shepard, Anita            3           3                      0  50750     0
-    ## Spirea, Kelley            5           3                      0  65714     0
-    ##                      PositionID                 Position State  Zip      DOB
-    ## LaRotonda, William            1             Accountant I    MA 1460 04/26/84
-    ## Bernstein, Sean              19  Production Technician I    MA 2072 12/22/70
-    ## Salter, Jason                 9            Data Analyst     MA 2452 12/17/87
-    ## Adinolfi, Wilson  K          19  Production Technician I    MA 1960 07/10/83
-    ## Linden, Mathew               20 Production Technician II    MA 1770 03/19/79
-    ## Roehrich, Bianca             29 Principal Data Architect    MA 2703 05/27/73
-    ## Jhaveri, Sneha               19  Production Technician I    MA 2109 04/13/64
-    ## Foss, Jason                  12              IT Director    MA 1460 07/05/80
-    ## Shepard, Anita               15         Network Engineer    MA 1773 04/14/81
-    ## Spirea, Kelley               18       Production Manager    MA 2451 09/30/75
-    ##                      Sex MaritalDesc CitizenDesc HispanicLatino
-    ## LaRotonda, William    M     Divorced  US Citizen             No
-    ## Bernstein, Sean       M       Single  US Citizen            Yes
-    ## Salter, Jason         M     Divorced  US Citizen             No
-    ## Adinolfi, Wilson  K   M       Single  US Citizen             No
-    ## Linden, Mathew        M      Married  US Citizen             No
-    ## Roehrich, Bianca       F      Single  US Citizen            Yes
-    ## Jhaveri, Sneha         F   Separated  US Citizen             No
-    ## Foss, Jason           M       Single  US Citizen             No
-    ## Shepard, Anita         F     Married  US Citizen             No
-    ## Spirea, Kelley         F     Married  US Citizen             No
-    ##                                       RaceDesc DateofHire DateofTermination
-    ## LaRotonda, William   Black or African American   1/6/2014                  
-    ## Bernstein, Sean                          White   4/2/2012                  
-    ## Salter, Jason        Black or African American   1/5/2015        10/31/2015
-    ## Adinolfi, Wilson  K                      White   7/5/2011                  
-    ## Linden, Mathew                           White   7/8/2013                  
-    ## Roehrich, Bianca                         White   1/5/2015        11/10/2018
-    ## Jhaveri, Sneha                           White   1/6/2014                  
-    ## Foss, Jason          Black or African American  4/15/2011                  
-    ## Shepard, Anita                           White  9/30/2014                  
-    ## Spirea, Kelley                           White  10/2/2012                  
-    ##                             TermReason       EmploymentStatus        Department
-    ## LaRotonda, William   N/A-StillEmployed                 Active     Admin Offices
-    ## Bernstein, Sean      N/A-StillEmployed                 Active Production       
-    ## Salter, Jason                    hours Voluntarily Terminated             IT/IS
-    ## Adinolfi, Wilson  K  N/A-StillEmployed                 Active Production       
-    ## Linden, Mathew       N/A-StillEmployed                 Active Production       
-    ## Roehrich, Bianca      Another position Voluntarily Terminated             IT/IS
-    ## Jhaveri, Sneha       N/A-StillEmployed                 Active Production       
-    ## Foss, Jason          N/A-StillEmployed                 Active             IT/IS
-    ## Shepard, Anita       N/A-StillEmployed                 Active             IT/IS
-    ## Spirea, Kelley       N/A-StillEmployed                 Active Production       
-    ##                             ManagerName ManagerID RecruitmentSource
-    ## LaRotonda, William   Brandon R. LeBlanc         1           Website
-    ## Bernstein, Sean                Amy Dunn        11     Google Search
-    ## Salter, Jason                Simon Roup         4          LinkedIn
-    ## Adinolfi, Wilson  K      Michael Albert        22          LinkedIn
-    ## Linden, Mathew            Kelley Spirea        18          LinkedIn
-    ## Roehrich, Bianca             Simon Roup         4          LinkedIn
-    ## Jhaveri, Sneha            Kelley Spirea        18          LinkedIn
-    ## Foss, Jason             Jennifer Zamora         5            Indeed
-    ## Shepard, Anita             Peter Monroe         7          LinkedIn
-    ## Spirea, Kelley               Janet King         2          LinkedIn
-    ##                      PerformanceScore EngagementSurvey EmpSatisfaction
-    ## LaRotonda, William        Fully Meets             5.00               4
-    ## Bernstein, Sean           Fully Meets             5.00               3
-    ## Salter, Jason             Fully Meets             4.20               3
-    ## Adinolfi, Wilson  K           Exceeds             4.60               5
-    ## Linden, Mathew            Fully Meets             4.00               3
-    ## Roehrich, Bianca          Fully Meets             3.88               3
-    ## Jhaveri, Sneha            Fully Meets             5.00               5
-    ## Foss, Jason                   Exceeds             5.00               5
-    ## Shepard, Anita            Fully Meets             3.31               3
-    ## Spirea, Kelley            Fully Meets             4.83               5
-    ##                      SpecialProjectsCount LastPerformanceReview_Date
-    ## LaRotonda, William                      4                  1/17/2019
-    ## Bernstein, Sean                         0                  1/14/2019
-    ## Salter, Jason                           5                  4/20/2015
-    ## Adinolfi, Wilson  K                     0                  1/17/2019
-    ## Linden, Mathew                          0                  2/18/2019
-    ## Roehrich, Bianca                        7                  2/13/2018
-    ## Jhaveri, Sneha                          0                  1/21/2019
-    ## Foss, Jason                             5                   1/7/2019
-    ## Shepard, Anita                          6                   1/7/2019
-    ## Spirea, Kelley                          0                  2/14/2019
-    ##                      DaysLateLast30 Absences
-    ## LaRotonda, William                0        3
-    ## Bernstein, Sean                   0       13
-    ## Salter, Jason                     0        2
-    ## Adinolfi, Wilson  K               0        1
-    ## Linden, Mathew                    0        7
-    ## Roehrich, Bianca                  0       12
-    ## Jhaveri, Sneha                    0        9
-    ## Foss, Jason                       0       15
-    ## Shepard, Anita                    0        7
-    ## Spirea, Kelley                    0       15
+    ##                    EmpID MarriedID MaritalStatusID GenderID EmpStatusID DeptID
+    ## Tejeda, Lenora     10146         1               1        0           5      5
+    ## Roberson, May      10230         0               2        0           5      5
+    ## McKinzie, Jac      10202         1               1        1           2      6
+    ## Rhoads, Thomas     10058         0               2        1           5      5
+    ## Nguyen, Dheepa     10042         0               0        0           1      6
+    ## Forrest, Alex      10305         1               1        1           1      6
+    ## Fidelia,  Libby    10049         1               1        0           1      5
+    ## Daneault, Lynn     10099         0               0        0           1      6
+    ## Sullivan, Timothy  10117         1               1        1           1      5
+    ## Petingill, Shana   10217         1               1        0           1      5
+    ##                    PerfScoreID FromDiversityJobFairID Salary Termd PositionID
+    ## Tejeda, Lenora               3                      0  72202     1         20
+    ## Roberson, May                3                      0  64971     1         20
+    ## McKinzie, Jac                3                      0  63291     0          3
+    ## Rhoads, Thomas               3                      0  45115     1         19
+    ## Nguyen, Dheepa               3                      0  63695     0          3
+    ## Forrest, Alex                3                      0  70187     1          3
+    ## Fidelia,  Libby              3                      0  58530     0         19
+    ## Daneault, Lynn               3                      0  65729     0         21
+    ## Sullivan, Timothy            3                      0  63025     0         19
+    ## Petingill, Shana             3                      0  74226     0         20
+    ##                                    Position State   Zip      DOB Sex
+    ## Tejeda, Lenora     Production Technician II    MA  2129 05/24/53   F
+    ## Roberson, May      Production Technician II    MA  1902 09/05/81   F
+    ## McKinzie, Jac            Area Sales Manager    TX 78789 07/01/84  M 
+    ## Rhoads, Thomas      Production Technician I    MA  2176 07/22/82  M 
+    ## Nguyen, Dheepa           Area Sales Manager    GA 30428 03/31/89   F
+    ## Forrest, Alex            Area Sales Manager    MA  2330 07/07/75  M 
+    ## Fidelia,  Libby     Production Technician I    MA  2155 03/16/81   F
+    ## Daneault, Lynn                Sales Manager    VT  5473 04/19/90   F
+    ## Sullivan, Timothy   Production Technician I    MA  2747 10/07/82  M 
+    ## Petingill, Shana   Production Technician II    MA  2050 03/10/79   F
+    ##                    MaritalDesc         CitizenDesc HispanicLatino
+    ## Tejeda, Lenora         Married          US Citizen             No
+    ## Roberson, May         Divorced Eligible NonCitizen             No
+    ## McKinzie, Jac          Married          US Citizen             No
+    ## Rhoads, Thomas        Divorced          US Citizen            Yes
+    ## Nguyen, Dheepa          Single          US Citizen             No
+    ## Forrest, Alex          Married          US Citizen             No
+    ## Fidelia,  Libby        Married          US Citizen             No
+    ## Daneault, Lynn          Single          US Citizen             No
+    ## Sullivan, Timothy      Married          US Citizen            Yes
+    ## Petingill, Shana       Married Eligible NonCitizen             No
+    ##                                     RaceDesc DateofHire DateofTermination
+    ## Tejeda, Lenora                         White  5/16/2011          7/8/2017
+    ## Roberson, May      Black or African American  9/26/2011        10/22/2011
+    ## McKinzie, Jac              Two or more races   7/6/2016                  
+    ## Rhoads, Thomas                         White  5/16/2011         1/15/2016
+    ## Nguyen, Dheepa             Two or more races   7/8/2013                  
+    ## Forrest, Alex                          White  9/29/2014         8/19/2018
+    ## Fidelia,  Libby                        White   1/9/2012                  
+    ## Daneault, Lynn                         White   5/5/2014                  
+    ## Sullivan, Timothy                      White   1/5/2015                  
+    ## Petingill, Shana                       Asian   4/2/2012                  
+    ##                           TermReason       EmploymentStatus        Department
+    ## Tejeda, Lenora      Another position Voluntarily Terminated Production       
+    ## Roberson, May       return to school Voluntarily Terminated Production       
+    ## McKinzie, Jac      N/A-StillEmployed                 Active             Sales
+    ## Rhoads, Thomas              retiring Voluntarily Terminated Production       
+    ## Nguyen, Dheepa     N/A-StillEmployed                 Active             Sales
+    ## Forrest, Alex       Fatal attraction   Terminated for Cause             Sales
+    ## Fidelia,  Libby    N/A-StillEmployed                 Active Production       
+    ## Daneault, Lynn     N/A-StillEmployed                 Active             Sales
+    ## Sullivan, Timothy  N/A-StillEmployed                 Active Production       
+    ## Petingill, Shana   N/A-StillEmployed                 Active Production       
+    ##                       ManagerName ManagerID RecruitmentSource PerformanceScore
+    ## Tejeda, Lenora       Elijiah Gray        16     Google Search      Fully Meets
+    ## Roberson, May       David Stanley        14     Google Search      Fully Meets
+    ## McKinzie, Jac       Lynn Daneault        21           Website      Fully Meets
+    ## Rhoads, Thomas       Elijiah Gray        16          LinkedIn      Fully Meets
+    ## Nguyen, Dheepa      Lynn Daneault        21            Indeed      Fully Meets
+    ## Forrest, Alex       Lynn Daneault        21 Employee Referral              PIP
+    ## Fidelia,  Libby    Brannon Miller        12     Google Search      Fully Meets
+    ## Daneault, Lynn     Debra Houlihan        15            Indeed      Fully Meets
+    ## Sullivan, Timothy  Michael Albert        22     Google Search      Fully Meets
+    ## Petingill, Shana   Brannon Miller        12          LinkedIn      Fully Meets
+    ##                    EngagementSurvey EmpSatisfaction SpecialProjectsCount
+    ## Tejeda, Lenora                 3.93               3                    0
+    ## Roberson, May                  4.50               4                    0
+    ## McKinzie, Jac                  3.40               4                    0
+    ## Rhoads, Thomas                 5.00               4                    0
+    ## Nguyen, Dheepa                 5.00               5                    0
+    ## Forrest, Alex                  2.00               5                    0
+    ## Fidelia,  Libby                5.00               5                    0
+    ## Daneault, Lynn                 4.62               4                    0
+    ## Sullivan, Timothy              4.36               5                    0
+    ## Petingill, Shana               4.30               3                    0
+    ##                    LastPerformanceReview_Date DaysLateLast30 Absences
+    ## Tejeda, Lenora                      4/18/2017              0        3
+    ## Roberson, May                      10/22/2011              0       10
+    ## McKinzie, Jac                       1/29/2019              0        7
+    ## Rhoads, Thomas                      3/30/2015              0       11
+    ## Nguyen, Dheepa                      1/25/2019              0        2
+    ## Forrest, Alex                       1/28/2019              4        7
+    ## Fidelia,  Libby                     1/29/2019              0       19
+    ## Daneault, Lynn                      1/24/2019              0        8
+    ## Sullivan, Timothy                   1/24/2019              0       10
+    ## Petingill, Shana                    1/14/2019              0       14
 
 The first column is a column recording employee names. I have made this
 column the name of each rows (or known as observation). It is the
@@ -397,27 +389,27 @@ employee in the dataset.
 hr2$years_worked
 ```
 
-    ##   [1] 10.8  1.2  1.2 14.3  5.2 10.3  7.5  8.6 12.8  7.3  6.0  4.5  7.5 10.2  4.5
-    ##  [16]  6.5  5.8 11.1  1.2  8.8 10.1  8.7  7.8 11.1  3.2  2.0  7.2  0.9  1.2 13.5
-    ##  [31]  7.6  8.5  3.0 10.2 11.1 10.7  6.3  8.5  8.1  5.8  7.7  7.6  5.7  8.0  8.8
-    ##  [46] 10.0  4.4 10.6  9.7  1.6  1.1  5.8  8.8  5.2 11.8 13.3  7.3  7.1  5.8  7.5
-    ##  [61]  8.0  7.5  9.8 10.5  3.8  5.1 10.3  7.6  4.6  7.8  5.2  8.0 10.2  9.3 10.1
-    ##  [76]  7.3  8.3 11.3  7.6 12.0  6.2  7.5  8.1  7.8  6.5  4.0  2.1  7.8  8.2  4.5
-    ##  [91]  7.0  7.1 10.3  2.1  1.8  3.9 11.1 13.3 10.7 12.0  7.1 11.0  7.1  5.0  1.2
-    ## [106]  3.2  7.6  7.2  0.1  7.1  8.5 10.8  1.1  7.3  8.0  9.8  8.6  8.7  6.9  2.9
-    ## [121]  5.0  2.7 10.4  8.5  3.9  8.0  9.7  2.4  7.7  0.6  7.1  8.0  0.2 10.2  5.9
-    ## [136]  6.9  2.1  1.6  8.7  9.5  8.6 10.8  8.3  6.5  7.3  7.8  5.2  2.5  8.6  8.7
-    ## [151]  9.8  3.7  2.3  8.2 11.3 11.2  7.5  4.9  1.2  9.8  8.3  1.0  5.6  6.9  6.3
-    ## [166] 10.0 10.0  8.6  7.2  8.8 11.3  3.2  8.7  7.2  4.0  5.0  8.3  6.0  1.1  8.5
-    ## [181]  8.5 10.9  7.1  9.3  5.8  4.6  7.1  9.7  3.1 10.5 10.2  9.0 10.3  7.2  9.1
-    ## [196]  9.0  8.8  5.2  2.5  3.2  8.0  9.1  8.8  8.8  7.5  4.1  1.3  8.6  8.6  8.2
-    ## [211]  7.3  2.9  3.8  1.4  7.0  4.2  4.4  1.7  5.6 10.1  7.5  1.4 14.5 10.3  7.1
-    ## [226]  8.3  0.7  4.5  5.6  6.5  8.0  4.7 10.4  0.1  0.6  5.0  5.4  8.8  7.2  3.8
-    ## [241]  5.3  8.3  7.4  9.3  3.8  9.5  5.8  9.6 11.7  0.8  7.6  8.6  7.6  8.7  7.3
-    ## [256]  7.0  5.5  7.6  8.0  2.0  8.5 10.9  5.8 10.2  9.6  2.1 11.3  8.0  7.6  8.2
-    ## [271] 11.6 13.3  7.3 10.0  7.8  5.0  3.9  6.2  7.6  5.2  3.2  9.2 16.3  8.2  1.1
-    ## [286]  5.2  3.5  7.1 10.8  3.5 10.8 10.2  2.0  4.4  6.8  7.7  0.3  3.1  5.2  7.1
-    ## [301]  3.3  4.3  1.3  3.5  3.1  7.6  7.8  7.1 12.1  7.1  7.6
+    ##   [1] 10.9  1.2  1.2 14.4  5.2 10.4  7.5  8.6 12.9  7.4  6.0  4.5  7.5 10.2  4.5
+    ##  [16]  6.5  5.8 11.1  1.2  8.9 10.1  8.7  7.9 11.1  3.2  2.0  7.2  0.9  1.2 13.6
+    ##  [31]  7.6  8.5  3.0 10.2 11.1 10.8  6.3  8.5  8.1  5.9  7.7  7.6  5.7  8.0  8.9
+    ##  [46] 10.0  4.4 10.6  9.7  1.6  1.1  5.9  8.9  5.2 11.8 13.4  7.4  7.1  5.9  7.5
+    ##  [61]  8.0  7.5  9.9 10.5  3.8  5.1 10.4  7.6  4.6  7.9  5.2  8.0 10.2  9.4 10.1
+    ##  [76]  7.4  8.4 11.3  7.7 12.1  6.2  7.5  8.1  7.9  6.5  4.0  2.1  7.9  8.2  4.5
+    ##  [91]  7.0  7.1 10.4  2.1  1.8  3.9 11.1 13.4 10.7 12.0  7.1 11.0  7.1  5.0  1.2
+    ## [106]  3.2  7.6  7.2  0.1  7.1  8.5 10.8  1.1  7.4  8.0  9.9  8.6  8.7  7.0  2.9
+    ## [121]  5.1  2.7 10.5  8.5  3.9  8.0  9.8  2.4  7.7  0.6  7.1  8.0  0.2 10.2  5.9
+    ## [136]  6.9  2.1  1.6  8.7  9.5  8.6 10.9  8.4  6.5  7.4  7.9  5.2  2.5  8.6  8.7
+    ## [151]  9.9  3.7  2.3  8.2 11.3 11.2  7.5  4.9  1.2  9.9  8.4  1.0  5.6  6.9  6.4
+    ## [166] 10.0 10.0  8.6  7.2  8.9 11.3  3.2  8.7  7.2  4.0  5.0  8.4  6.0  1.1  8.5
+    ## [181]  8.5 11.0  7.1  9.4  5.9  4.6  7.1  9.7  3.1 10.5 10.2  9.0 10.4  7.2  9.1
+    ## [196]  9.0  8.9  5.3  2.5  3.2  8.0  9.1  8.9  8.9  7.5  4.1  1.3  8.6  8.6  8.2
+    ## [211]  7.4  2.9  3.8  1.4  7.0  4.2  4.4  1.7  5.6 10.1  7.5  1.4 14.5 10.4  7.1
+    ## [226]  8.4  0.7  4.5  5.6  6.5  8.0  4.7 10.5  0.1  0.6  5.0  5.4  8.9  7.2  3.8
+    ## [241]  5.4  8.4  7.4  9.3  3.8  9.5  5.9  9.6 11.7  0.8  7.6  8.6  7.6  8.7  7.4
+    ## [256]  7.0  5.5  7.6  8.0  2.0  8.5 10.9  5.9 10.2  9.6  2.1 11.3  8.0  7.6  8.2
+    ## [271] 11.6 13.4  7.4 10.0  7.9  5.1  3.9  6.2  7.6  5.2  3.2  9.2 16.4  8.2  1.1
+    ## [286]  5.2  3.5  7.1 10.9  3.5 10.8 10.2  2.0  4.4  6.9  7.7  0.3  3.1  5.2  7.1
+    ## [301]  3.3  4.3  1.3  3.5  3.1  7.6  7.9  7.1 12.1  7.1  7.6
 
 ### 5.4 Trim
 
@@ -502,7 +494,7 @@ str(hr2 %>%
     ##  $ Salary                : int  62506 104437 64955 64991 50825 57568 95660 59365 47837 50178 ...
     ##  $ Termd                 : int  0 1 1 0 1 0 0 0 0 0 ...
     ##  $ Age                   : num  39 47 34 34 33 45 43 39 52 34 ...
-    ##  $ years_worked          : num  10.8 1.2 1.2 14.3 5.2 10.3 7.5 8.6 12.8 7.3 ...
+    ##  $ years_worked          : num  10.9 1.2 1.2 14.4 5.2 10.4 7.5 8.6 12.9 7.4 ...
     ##  $ EngagementSurvey      : num  4.6 4.96 3.02 4.84 5 5 3.04 5 4.46 5 ...
     ##  $ EmpSatisfaction       : int  5 3 3 5 4 5 3 4 3 5 ...
     ##  $ SpecialProjectsCount  : int  0 6 0 0 0 0 4 0 0 6 ...
@@ -1206,10 +1198,10 @@ years_worked
 1
 </td>
 <td style="text-align:right;">
-6.94
+6.96
 </td>
 <td style="text-align:right;">
-3.16
+3.17
 </td>
 <td style="text-align:right;">
 0.10
@@ -1221,10 +1213,10 @@ years_worked
 7.50
 </td>
 <td style="text-align:right;">
-8.8
+8.9
 </td>
 <td style="text-align:right;">
-16.3
+16.4
 </td>
 </tr>
 <tr>
@@ -1437,15 +1429,13 @@ ggplot(df6.1, aes(x = my_values, fill = my_var)) +
        y = "Count")
 ```
 
-    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
-
 ![](hr_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
 
 ### 6.2 factor variables 1
 
 There are 17 factor variables to look at, I have spread this examination
 into two parts. In this part “factor variables 1”, I will look at the
-first 8 factor variables and examine the remaining in next section.
+first 9 factor variables and examine the remaining in next section.
 
 ``` r
 # df
@@ -1458,17 +1448,12 @@ df6.2 <- hr2 %>%
   summarise(count = n()) %>% 
   ungroup() %>% 
   mutate(label = reorder_within(x = my_values, by = count, within = my_var))
-```
 
-    ## `summarise()` has grouped output by 'my_var'. You can override using the
-    ## `.groups` argument.
-
-``` r
 # graph
 
 ggplot(df6.2, aes(y = label, x = count, fill = my_values)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = count)) +
+  geom_text(aes(label = count), hjust = 1) +
   facet_wrap(~my_var, scales = "free", ) +
   theme_bw() +
   theme(legend.position = "none",
@@ -1493,20 +1478,56 @@ hr2 %>%
   summarise(count = n()) %>% 
   ggplot(aes(y = fct_reorder(Position, count), x = count)) +
   geom_bar(stat = "identity") +
+  geom_text(aes(label = count), hjust = -0.3) +
+  theme_bw() +
   theme(plot.title = element_text(face = "bold", hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5)) +
   labs(title = "Visualisation of factor variables 1",
        subtitle = "by Bar chart",
        y = "Variables",
        x = "Count") +
-  theme_bw()
+  scale_x_continuous(lim = c(0, 140))
 ```
 
 ![](hr_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
 
-## MACHINE LEARNING (PC METHODS)
+### 6.3 factor variables 2
 
-### 
+This section examine the remaining 8 factor variables.
+
+``` r
+# df
+
+df6.3 <- hr2 %>% 
+  dplyr::select(is.factor) %>% 
+  pivot_longer(10:17, names_to = "my_var", values_to = "my_values") %>% 
+  group_by(my_var, my_values) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  mutate(label = reorder_within(x = my_values, by = count, within = my_var))
+
+# graph
+
+ggplot(df6.3, aes(y = label, x = count, fill = my_values)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = count), hjust = 1) +
+  facet_wrap(~my_var, scales = "free", ) +
+  theme_bw() +
+  theme(legend.position = "none",
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  scale_y_reordered() +
+  labs(title = "Visualisation of factor variables 1",
+       subtitle = "by Bar chart",
+       y = "Variables",
+       x = "Count")
+```
+
+![](hr_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+
+## 7 CLUSTERING
+
+## 8 PRINCIPAL COMPONENT
 
 ## REFERENCE
 

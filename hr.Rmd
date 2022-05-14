@@ -1,5 +1,5 @@
 ---
-title: "Human Resources Data Analysis using Principal Component Methods"
+title: "Human Resources Data Clustering & PC Analysis"
 author: "Kar Ng"
 date: '2022-05'
 output: 
@@ -23,6 +23,8 @@ library(kableExtra)
 library(lubridate)
 library(skimr)
 library(tidytext)
+library(factoextra)
+library(FactoMineR)
 
 ```
 
@@ -305,7 +307,7 @@ Insights from following summary:
 * There are a small number of employees had many special projects  
 * Most employees from this company worked between 5 to 10 years  
 
-```{r}
+```{r, message=FALSE}
 # df
 
 df6.1 <- hr2 %>% 
@@ -331,9 +333,9 @@ ggplot(df6.1, aes(x = my_values, fill = my_var)) +
 
 ### 6.2 factor variables 1
 
-There are 17 factor variables to look at, I have spread this examination into two parts. In this part "factor variables 1", I will look at the first 8 factor variables and examine the remaining in next section. 
+There are 17 factor variables to look at, I have spread this examination into two parts. In this part "factor variables 1", I will look at the first 9 factor variables and examine the remaining in next section. 
 
-```{r, fig.height=9, fig.width=10}
+```{r, fig.height=9, fig.width=10, message=FALSE}
 # df
 
 df6.2 <- hr2 %>% 
@@ -349,7 +351,7 @@ df6.2 <- hr2 %>%
 
 ggplot(df6.2, aes(y = label, x = count, fill = my_values)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = count)) +
+  geom_text(aes(label = count), hjust = 1) +
   facet_wrap(~my_var, scales = "free", ) +
   theme_bw() +
   theme(legend.position = "none",
@@ -366,27 +368,72 @@ ggplot(df6.2, aes(y = label, x = count, fill = my_values)) +
 
 Following shows the number of workers in each position in the organisation.
 
-```{r}
+```{r, fig.width=8, fig.height=6}
 hr2 %>% 
   dplyr::select(Position) %>% 
   group_by(Position) %>% 
   summarise(count = n()) %>% 
   ggplot(aes(y = fct_reorder(Position, count), x = count)) +
   geom_bar(stat = "identity") +
+  geom_text(aes(label = count), hjust = -0.3) +
+  theme_bw() +
   theme(plot.title = element_text(face = "bold", hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5)) +
   labs(title = "Visualisation of factor variables 1",
        subtitle = "by Bar chart",
        y = "Variables",
        x = "Count") +
-  theme_bw()
+  scale_x_continuous(lim = c(0, 140))
   
+
+```
+
+
+### 6.3 factor variables 2
+
+This section examine the remaining 8 factor variables. 
+
+```{r, fig.height=9, fig.width=10, message=FALSE}
+# df
+
+df6.3 <- hr2 %>% 
+  dplyr::select(is.factor) %>% 
+  pivot_longer(10:17, names_to = "my_var", values_to = "my_values") %>% 
+  group_by(my_var, my_values) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  mutate(label = reorder_within(x = my_values, by = count, within = my_var))
+
+# graph
+
+ggplot(df6.3, aes(y = label, x = count, fill = my_values)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = count), hjust = 1) +
+  facet_wrap(~my_var, scales = "free", ) +
+  theme_bw() +
+  theme(legend.position = "none",
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  scale_y_reordered() +
+  labs(title = "Visualisation of factor variables 1",
+       subtitle = "by Bar chart",
+       y = "Variables",
+       x = "Count")
+
+
+```
+
+
+## 7 CLUSTERING
+
+```{r}
 
 ```
 
 
 
 
+## 8 PRINCIPAL COMPONENT
 
 
 
@@ -395,10 +442,6 @@ hr2 %>%
 
 
 
-
-## MACHINE LEARNING (PC METHODS)
-
-### 
 
 
 
