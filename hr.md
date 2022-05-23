@@ -24,6 +24,8 @@ Kar Ng
     -   [6.2 factor variables 1](#62-factor-variables-1)
     -   [6.3 factor variables 2](#63-factor-variables-2)
 -   [7 CLUSTERING](#7-clustering)
+    -   [7.1 Hierarchical Clustering](#71-hierarchical-clustering)
+    -   [7.1 PAM](#71-pam)
 -   [8 PRINCIPAL COMPONENT](#8-principal-component)
 -   [REFERENCE](#reference)
 
@@ -39,6 +41,8 @@ library(skimr)
 library(tidytext)
 library(factoextra)
 library(FactoMineR)
+library(cluster)    # For daisy function
+library(cowplot)
 ```
 
 ## 3 INTRODUCTION
@@ -89,10 +93,11 @@ This dataset
 Following code upload the dataset into R.
 
 ``` r
-hr <- read.csv("hr_dataset.csv", header = T,
-               fileEncoding = "UTF-8-BOM", 
-               row.names = 1, 
-               na.strings = T)
+hr <- read.csv("hr_dataset.csv", 
+               fileEncoding = "UTF-8-BOM",
+               na.strings = T,
+               header = T,
+               row.names = NULL)
 ```
 
 ### 4.2 Data description
@@ -116,7 +121,8 @@ glimpse(hr)
 ```
 
     ## Rows: 311
-    ## Columns: 35
+    ## Columns: 36
+    ## $ Employee_Name              <chr> "Adinolfi  Wilson  K", "Ait Sidi  Karthikey~
     ## $ EmpID                      <int> 10026, 10084, 10196, 10088, 10069, 10002, 1~
     ## $ MarriedID                  <int> 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0~
     ## $ MaritalStatusID            <int> 0, 1, 1, 1, 2, 0, 0, 4, 0, 2, 1, 1, 2, 0, 2~
@@ -131,14 +137,14 @@ glimpse(hr)
     ## $ Position                   <chr> "Production Technician I", "Sr. DBA", "Prod~
     ## $ State                      <chr> "MA", "MA", "MA", "MA", "MA", "MA", "MA", "~
     ## $ Zip                        <int> 1960, 2148, 1810, 1886, 2169, 1844, 2110, 2~
-    ## $ DOB                        <chr> "07/10/83", "05/05/75", "09/19/88", "09/27/~
+    ## $ DOB                        <chr> "7/10/1983", "5/05/1975", "09/19/88", "09/2~
     ## $ Sex                        <chr> "M ", "M ", "F", "F", "F", "F", "F", "M ", ~
     ## $ MaritalDesc                <chr> "Single", "Married", "Married", "Married", ~
     ## $ CitizenDesc                <chr> "US Citizen", "US Citizen", "US Citizen", "~
     ## $ HispanicLatino             <chr> "No", "No", "No", "No", "No", "No", "No", "~
     ## $ RaceDesc                   <chr> "White", "White", "White", "White", "White"~
-    ## $ DateofHire                 <chr> "7/5/2011", "3/30/2015", "7/5/2011", "1/7/2~
-    ## $ DateofTermination          <chr> "", "6/16/2016", "9/24/2012", "", "9/6/2016~
+    ## $ DateofHire                 <chr> "7/05/2011", "3/30/2015", "7/05/2011", "1/0~
+    ## $ DateofTermination          <chr> "", "6/16/2016", "9/24/2012", "", "9/06/201~
     ## $ TermReason                 <chr> "N/A-StillEmployed", "career change", "hour~
     ## $ EmploymentStatus           <chr> "Active", "Voluntarily Terminated", "Volunt~
     ## $ Department                 <chr> "Production       ", "IT/IS", "Production  ~
@@ -149,7 +155,7 @@ glimpse(hr)
     ## $ EngagementSurvey           <dbl> 4.60, 4.96, 3.02, 4.84, 5.00, 5.00, 3.04, 5~
     ## $ EmpSatisfaction            <int> 5, 3, 3, 5, 4, 5, 3, 4, 3, 5, 4, 3, 4, 4, 5~
     ## $ SpecialProjectsCount       <int> 0, 6, 0, 0, 0, 0, 4, 0, 0, 6, 0, 0, 5, 0, 0~
-    ## $ LastPerformanceReview_Date <chr> "1/17/2019", "2/24/2016", "5/15/2012", "1/3~
+    ## $ LastPerformanceReview_Date <chr> "1/17/2019", "2/24/2016", "5/15/2012", "1/0~
     ## $ DaysLateLast30             <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0~
     ## $ Absences                   <int> 1, 17, 3, 15, 2, 15, 19, 19, 4, 16, 12, 15,~
 
@@ -159,105 +165,94 @@ Randomly sample 10 rows of data from the table:
 sample_n(hr, 10)
 ```
 
-    ##                    EmpID MarriedID MaritalStatusID GenderID EmpStatusID DeptID
-    ## Tejeda, Lenora     10146         1               1        0           5      5
-    ## Roberson, May      10230         0               2        0           5      5
-    ## McKinzie, Jac      10202         1               1        1           2      6
-    ## Rhoads, Thomas     10058         0               2        1           5      5
-    ## Nguyen, Dheepa     10042         0               0        0           1      6
-    ## Forrest, Alex      10305         1               1        1           1      6
-    ## Fidelia,  Libby    10049         1               1        0           1      5
-    ## Daneault, Lynn     10099         0               0        0           1      6
-    ## Sullivan, Timothy  10117         1               1        1           1      5
-    ## Petingill, Shana   10217         1               1        0           1      5
-    ##                    PerfScoreID FromDiversityJobFairID Salary Termd PositionID
-    ## Tejeda, Lenora               3                      0  72202     1         20
-    ## Roberson, May                3                      0  64971     1         20
-    ## McKinzie, Jac                3                      0  63291     0          3
-    ## Rhoads, Thomas               3                      0  45115     1         19
-    ## Nguyen, Dheepa               3                      0  63695     0          3
-    ## Forrest, Alex                3                      0  70187     1          3
-    ## Fidelia,  Libby              3                      0  58530     0         19
-    ## Daneault, Lynn               3                      0  65729     0         21
-    ## Sullivan, Timothy            3                      0  63025     0         19
-    ## Petingill, Shana             3                      0  74226     0         20
-    ##                                    Position State   Zip      DOB Sex
-    ## Tejeda, Lenora     Production Technician II    MA  2129 05/24/53   F
-    ## Roberson, May      Production Technician II    MA  1902 09/05/81   F
-    ## McKinzie, Jac            Area Sales Manager    TX 78789 07/01/84  M 
-    ## Rhoads, Thomas      Production Technician I    MA  2176 07/22/82  M 
-    ## Nguyen, Dheepa           Area Sales Manager    GA 30428 03/31/89   F
-    ## Forrest, Alex            Area Sales Manager    MA  2330 07/07/75  M 
-    ## Fidelia,  Libby     Production Technician I    MA  2155 03/16/81   F
-    ## Daneault, Lynn                Sales Manager    VT  5473 04/19/90   F
-    ## Sullivan, Timothy   Production Technician I    MA  2747 10/07/82  M 
-    ## Petingill, Shana   Production Technician II    MA  2050 03/10/79   F
-    ##                    MaritalDesc         CitizenDesc HispanicLatino
-    ## Tejeda, Lenora         Married          US Citizen             No
-    ## Roberson, May         Divorced Eligible NonCitizen             No
-    ## McKinzie, Jac          Married          US Citizen             No
-    ## Rhoads, Thomas        Divorced          US Citizen            Yes
-    ## Nguyen, Dheepa          Single          US Citizen             No
-    ## Forrest, Alex          Married          US Citizen             No
-    ## Fidelia,  Libby        Married          US Citizen             No
-    ## Daneault, Lynn          Single          US Citizen             No
-    ## Sullivan, Timothy      Married          US Citizen            Yes
-    ## Petingill, Shana       Married Eligible NonCitizen             No
-    ##                                     RaceDesc DateofHire DateofTermination
-    ## Tejeda, Lenora                         White  5/16/2011          7/8/2017
-    ## Roberson, May      Black or African American  9/26/2011        10/22/2011
-    ## McKinzie, Jac              Two or more races   7/6/2016                  
-    ## Rhoads, Thomas                         White  5/16/2011         1/15/2016
-    ## Nguyen, Dheepa             Two or more races   7/8/2013                  
-    ## Forrest, Alex                          White  9/29/2014         8/19/2018
-    ## Fidelia,  Libby                        White   1/9/2012                  
-    ## Daneault, Lynn                         White   5/5/2014                  
-    ## Sullivan, Timothy                      White   1/5/2015                  
-    ## Petingill, Shana                       Asian   4/2/2012                  
-    ##                           TermReason       EmploymentStatus        Department
-    ## Tejeda, Lenora      Another position Voluntarily Terminated Production       
-    ## Roberson, May       return to school Voluntarily Terminated Production       
-    ## McKinzie, Jac      N/A-StillEmployed                 Active             Sales
-    ## Rhoads, Thomas              retiring Voluntarily Terminated Production       
-    ## Nguyen, Dheepa     N/A-StillEmployed                 Active             Sales
-    ## Forrest, Alex       Fatal attraction   Terminated for Cause             Sales
-    ## Fidelia,  Libby    N/A-StillEmployed                 Active Production       
-    ## Daneault, Lynn     N/A-StillEmployed                 Active             Sales
-    ## Sullivan, Timothy  N/A-StillEmployed                 Active Production       
-    ## Petingill, Shana   N/A-StillEmployed                 Active Production       
-    ##                       ManagerName ManagerID RecruitmentSource PerformanceScore
-    ## Tejeda, Lenora       Elijiah Gray        16     Google Search      Fully Meets
-    ## Roberson, May       David Stanley        14     Google Search      Fully Meets
-    ## McKinzie, Jac       Lynn Daneault        21           Website      Fully Meets
-    ## Rhoads, Thomas       Elijiah Gray        16          LinkedIn      Fully Meets
-    ## Nguyen, Dheepa      Lynn Daneault        21            Indeed      Fully Meets
-    ## Forrest, Alex       Lynn Daneault        21 Employee Referral              PIP
-    ## Fidelia,  Libby    Brannon Miller        12     Google Search      Fully Meets
-    ## Daneault, Lynn     Debra Houlihan        15            Indeed      Fully Meets
-    ## Sullivan, Timothy  Michael Albert        22     Google Search      Fully Meets
-    ## Petingill, Shana   Brannon Miller        12          LinkedIn      Fully Meets
-    ##                    EngagementSurvey EmpSatisfaction SpecialProjectsCount
-    ## Tejeda, Lenora                 3.93               3                    0
-    ## Roberson, May                  4.50               4                    0
-    ## McKinzie, Jac                  3.40               4                    0
-    ## Rhoads, Thomas                 5.00               4                    0
-    ## Nguyen, Dheepa                 5.00               5                    0
-    ## Forrest, Alex                  2.00               5                    0
-    ## Fidelia,  Libby                5.00               5                    0
-    ## Daneault, Lynn                 4.62               4                    0
-    ## Sullivan, Timothy              4.36               5                    0
-    ## Petingill, Shana               4.30               3                    0
-    ##                    LastPerformanceReview_Date DaysLateLast30 Absences
-    ## Tejeda, Lenora                      4/18/2017              0        3
-    ## Roberson, May                      10/22/2011              0       10
-    ## McKinzie, Jac                       1/29/2019              0        7
-    ## Rhoads, Thomas                      3/30/2015              0       11
-    ## Nguyen, Dheepa                      1/25/2019              0        2
-    ## Forrest, Alex                       1/28/2019              4        7
-    ## Fidelia,  Libby                     1/29/2019              0       19
-    ## Daneault, Lynn                      1/24/2019              0        8
-    ## Sullivan, Timothy                   1/24/2019              0       10
-    ## Petingill, Shana                    1/14/2019              0       14
+    ##        Employee_Name EmpID MarriedID MaritalStatusID GenderID EmpStatusID
+    ## 1     Motlagh   Dawn 10254         0               2        0           1
+    ## 2  Carter  Michelle  10040         0               0        0           1
+    ## 3  Akinkuolie  Sarah 10196         1               1        0           5
+    ## 4  Immediato  Walter 10289         1               1        1           5
+    ## 5    Eaton  Marianne 10064         1               1        0           5
+    ## 6     Onque  Jasmine 10121         0               0        0           1
+    ## 7     Gonzalez  Cayo 10031         0               2        1           1
+    ## 8        Smith  John 10291         0               2        1           1
+    ## 9      Gerke  Melisa 10122         0               2        0           5
+    ## 10       King  Janet 10089         1               1        0           1
+    ##    DeptID PerfScoreID FromDiversityJobFairID Salary Termd PositionID
+    ## 1       5           3                      0  63430     0         19
+    ## 2       6           3                      0  71860     0          3
+    ## 3       5           3                      0  64955     1         20
+    ## 4       5           2                      0  83082     1         18
+    ## 5       5           3                      0  60070     1         19
+    ## 6       6           3                      0  63051     0          3
+    ## 7       5           4                      1  59892     0         19
+    ## 8       6           2                      1  72992     0         21
+    ## 9       5           3                      1  51505     1         19
+    ## 10      2           3                      0 250000     0         16
+    ##                    Position State   Zip       DOB Sex MaritalDesc CitizenDesc
+    ## 1   Production Technician I    MA  2453 7/07/1984   F    Divorced  US Citizen
+    ## 2        Area Sales Manager    VT  5664  05/15/63   F      Single  US Citizen
+    ## 3  Production Technician II    MA  1810  09/19/88   F     Married  US Citizen
+    ## 4        Production Manager    MA  2128  11/15/76  M      Married  US Citizen
+    ## 5   Production Technician I    MA  2343 9/05/1991   F     Married  US Citizen
+    ## 6        Area Sales Manager    FL 33174 5/11/1990   F      Single  US Citizen
+    ## 7   Production Technician I    MA  2108  09/29/69  M     Divorced  US Citizen
+    ## 8             Sales Manager    MA  1886  08/16/84  M     Divorced  US Citizen
+    ## 9   Production Technician I    MA  2330  05/15/70   F    Divorced  US Citizen
+    ## 10          President & CEO    MA  1902  09/21/54   F     Married  US Citizen
+    ##    HispanicLatino                  RaceDesc DateofHire DateofTermination
+    ## 1              No                     White  4/01/2013                  
+    ## 2              No                     White  8/18/2014                  
+    ## 3              No                     White  7/05/2011         9/24/2012
+    ## 4              No                     Asian  2/21/2011         9/24/2012
+    ## 5              No                     White  4/04/2011         6/06/2017
+    ## 6             Yes                     White  9/30/2013                  
+    ## 7              No Black or African American  7/11/2011                  
+    ## 8              No Black or African American  5/18/2014                  
+    ## 9              No Black or African American 11/07/2011        11/15/2016
+    ## 10            Yes                     White  7/02/2012                  
+    ##           TermReason       EmploymentStatus        Department
+    ## 1  N/A-StillEmployed                 Active Production       
+    ## 2  N/A-StillEmployed                 Active             Sales
+    ## 3              hours Voluntarily Terminated Production       
+    ## 4            unhappy Voluntarily Terminated Production       
+    ## 5           military Voluntarily Terminated Production       
+    ## 6  N/A-StillEmployed                 Active             Sales
+    ## 7  N/A-StillEmployed                 Active Production       
+    ## 8  N/A-StillEmployed                 Active             Sales
+    ## 9              hours Voluntarily Terminated Production       
+    ## 10 N/A-StillEmployed                 Active  Executive Office
+    ##           ManagerName ManagerID  RecruitmentSource  PerformanceScore
+    ## 1        Elijiah Gray        16           LinkedIn       Fully Meets
+    ## 2          John Smith        17             Indeed       Fully Meets
+    ## 3      Kissy Sullivan        20           LinkedIn       Fully Meets
+    ## 4          Janet King         2             Indeed Needs Improvement
+    ## 5      Kissy Sullivan        20      Google Search       Fully Meets
+    ## 6       Lynn Daneault        21             Indeed       Fully Meets
+    ## 7      Brannon Miller        12 Diversity Job Fair           Exceeds
+    ## 8      Debra Houlihan        15 Diversity Job Fair Needs Improvement
+    ## 9        Elijiah Gray        16 Diversity Job Fair       Fully Meets
+    ## 10 Board of Directors         9             Indeed       Fully Meets
+    ##    EngagementSurvey EmpSatisfaction SpecialProjectsCount
+    ## 1              4.40               4                    0
+    ## 2              5.00               5                    0
+    ## 3              3.02               3                    0
+    ## 4              2.34               2                    0
+    ## 5              5.00               3                    0
+    ## 6              4.28               3                    0
+    ## 7              4.50               4                    0
+    ## 8              2.40               4                    0
+    ## 9              4.24               4                    0
+    ## 10             4.83               3                    0
+    ##    LastPerformanceReview_Date DaysLateLast30 Absences
+    ## 1                   1/17/2019              0       18
+    ## 2                   1/21/2019              0        7
+    ## 3                   5/15/2012              0        3
+    ## 4                   4/12/2012              3        4
+    ## 5                   4/09/2017              0        7
+    ## 6                   1/25/2019              0        1
+    ## 7                   2/18/2019              0        1
+    ## 8                   1/16/2019              2       16
+    ## 9                   4/29/2016              0        2
+    ## 10                  1/17/2019              0       10
 
 The first column is a column recording employee names. I have made this
 column the name of each rows (or known as observation). It is the
@@ -268,6 +263,11 @@ standard format required for PC methods.
 The data may seem perfectly to go however numerous important cleaning
 and manipulation tasks have been identified and will be perfectly
 completed in this section.
+
+``` r
+hr <- hr %>% 
+  column_to_rownames(var = "Employee_Name")
+```
 
 ### 5.1 Variables removals
 
@@ -304,14 +304,14 @@ glimpse(hr2)
     ## $ Termd                  <int> 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1,~
     ## $ Position               <chr> "Production Technician I", "Sr. DBA", "Producti~
     ## $ State                  <chr> "MA", "MA", "MA", "MA", "MA", "MA", "MA", "MA",~
-    ## $ DOB                    <chr> "07/10/83", "05/05/75", "09/19/88", "09/27/88",~
+    ## $ DOB                    <chr> "7/10/1983", "5/05/1975", "09/19/88", "09/27/88~
     ## $ Sex                    <chr> "M ", "M ", "F", "F", "F", "F", "F", "M ", "F",~
     ## $ MaritalDesc            <chr> "Single", "Married", "Married", "Married", "Div~
     ## $ CitizenDesc            <chr> "US Citizen", "US Citizen", "US Citizen", "US C~
     ## $ HispanicLatino         <chr> "No", "No", "No", "No", "No", "No", "No", "No",~
     ## $ RaceDesc               <chr> "White", "White", "White", "White", "White", "W~
-    ## $ DateofHire             <chr> "7/5/2011", "3/30/2015", "7/5/2011", "1/7/2008"~
-    ## $ DateofTermination      <chr> "", "6/16/2016", "9/24/2012", "", "9/6/2016", "~
+    ## $ DateofHire             <chr> "7/05/2011", "3/30/2015", "7/05/2011", "1/07/20~
+    ## $ DateofTermination      <chr> "", "6/16/2016", "9/24/2012", "", "9/06/2016", ~
     ## $ TermReason             <chr> "N/A-StillEmployed", "career change", "hours", ~
     ## $ EmploymentStatus       <chr> "Active", "Voluntarily Terminated", "Voluntaril~
     ## $ Department             <chr> "Production       ", "IT/IS", "Production      ~
@@ -346,19 +346,24 @@ following shows the age of all employees in the dataset.
 hr2$Age
 ```
 
-    ##   [1] 39 47 34 34 33 45 43 39 52 34 48 48 34 39 45 41 56 52 36 43 52 64 33 32 55
-    ##  [26] 58 35 52 32 35 39 53 58 42 45 56 39 35 39 36 59 71 50 43 39 52 39 34 37 41
-    ##  [51] 44 42 45 43 47 39 45 36 35 57 32 70 44 43 34 45 43 47 71 55 39 40 35 44 36
-    ##  [76] 34 52 34 49 49 31 48 44 33 39 33 35 44 35 67 33 35 41 41 39 47 42 43 59 54
-    ## [101] 37 39 32 52 51 48 42 33 51 33 30 53 58 41 36 43 39 48 41 39 33 53 45 34 70
-    ## [126] 48 38 50 34 38 38 56 37 36 38 30 46 46 31 50 56 36 58 63 36 53 36 33 46 43
-    ## [151] 68 49 52 45 42 53 36 50 43 36 38 38 35 43 38 40 34 41 41 43 34 46 40 47 49
-    ## [176] 50 36 46 36 48 35 45 35 35 38 54 46 41 37 30 36 52 46 43 38 48 42 52 33 39
-    ## [201] 45 55 33 38 37 42 70 32 46 43 40 43 43 38 34 33 36 36 45 43 38 34 41 34 38
-    ## [226] 61 52 38 42 38 68 40 49 41 50 48 37 37 41 49 50 48 35 49 58 36 54 48 36 35
-    ## [251] 34 47 41 37 52 34 35 59 38 35 57 49 39 54 47 49 40 48 36 37 33 44 40 54 39
-    ## [276] 35 47 69 57 57 47 55 54 39 34 39 37 53 31 35 54 33 36 36 37 46 67 42 41 44
-    ## [301] 35 57 39 53 64 37 37 40 43 43 44
+    ##   [1]  24  25  34  34  24  45  43  39  25  24  25  48  24  39  45  41  56  52
+    ##  [19]  24  25  52  64  24  32  55  58  24  25  32  35  39  53  26  24  45  56
+    ##  [37]  24  24  24  24  59  27  25  25  39  25  39  34  24  41  44  42  25  25
+    ##  [55]  47  39  45  36  24  26  32  70 103  43  34  45  25 103  71  55  24  40
+    ##  [73]  35 103 103  34  25 103  49  49  23  48  44  33  24  24  35  44  35  67
+    ##  [91]  33  35  41 103 103  25  24  43  59  26  37 103 103  52  25  25  24  33
+    ## [109]  51  33  30  53 103  41  36  43 103 103  24  39  33  26  45  24  70  25
+    ## [127]  24  50  34  38  38  56  37  24  24  23  46  46  31  25  56 103  58  63
+    ## [145] 103  26  36 103  46  43  68 103 103 103  24  53  36  25  43 103  38  24
+    ## [163]  35  43  24  24  34  41  41  43 103  46  40  47  49 103  24  46 103 103
+    ## [181] 103  45  35  24  24  54  46  24  37  30 103  52 103  25  24 103  42  52
+    ## [199]  24  39  25  26  33  24  37  42  27  23 103  43  40  25  43  24  34  33
+    ## [217]  36  36  25  25  38  24  41  34  38  61  52 103  24  38 103  40  25  24
+    ## [235]  25  25  24  37 103  49  50 103  35  25  26  36  26  48  36  35  24  25
+    ## [253]  41  37  25  34  35  59  38  35  26  25  24  54  47  49  40  25  24  37
+    ## [271]  24  44 103  54  24  35  25  69  26  26  47  26  54  39  24  39  37  53
+    ## [289]  31  35 103  24  24  24  24  25  67  24  24  25  35  26  39 103 103  37
+    ## [307]  24  24  43  43  44
 
 ### 5.3 New Variable: years_worked
 
@@ -389,27 +394,27 @@ employee in the dataset.
 hr2$years_worked
 ```
 
-    ##   [1] 10.9  1.2  1.2 14.4  5.2 10.4  7.5  8.6 12.9  7.4  6.0  4.5  7.5 10.2  4.5
-    ##  [16]  6.5  5.8 11.1  1.2  8.9 10.1  8.7  7.9 11.1  3.2  2.0  7.2  0.9  1.2 13.6
-    ##  [31]  7.6  8.5  3.0 10.2 11.1 10.8  6.3  8.5  8.1  5.9  7.7  7.6  5.7  8.0  8.9
-    ##  [46] 10.0  4.4 10.6  9.7  1.6  1.1  5.9  8.9  5.2 11.8 13.4  7.4  7.1  5.9  7.5
-    ##  [61]  8.0  7.5  9.9 10.5  3.8  5.1 10.4  7.6  4.6  7.9  5.2  8.0 10.2  9.4 10.1
-    ##  [76]  7.4  8.4 11.3  7.7 12.1  6.2  7.5  8.1  7.9  6.5  4.0  2.1  7.9  8.2  4.5
-    ##  [91]  7.0  7.1 10.4  2.1  1.8  3.9 11.1 13.4 10.7 12.0  7.1 11.0  7.1  5.0  1.2
-    ## [106]  3.2  7.6  7.2  0.1  7.1  8.5 10.8  1.1  7.4  8.0  9.9  8.6  8.7  7.0  2.9
-    ## [121]  5.1  2.7 10.5  8.5  3.9  8.0  9.8  2.4  7.7  0.6  7.1  8.0  0.2 10.2  5.9
-    ## [136]  6.9  2.1  1.6  8.7  9.5  8.6 10.9  8.4  6.5  7.4  7.9  5.2  2.5  8.6  8.7
-    ## [151]  9.9  3.7  2.3  8.2 11.3 11.2  7.5  4.9  1.2  9.9  8.4  1.0  5.6  6.9  6.4
-    ## [166] 10.0 10.0  8.6  7.2  8.9 11.3  3.2  8.7  7.2  4.0  5.0  8.4  6.0  1.1  8.5
-    ## [181]  8.5 11.0  7.1  9.4  5.9  4.6  7.1  9.7  3.1 10.5 10.2  9.0 10.4  7.2  9.1
-    ## [196]  9.0  8.9  5.3  2.5  3.2  8.0  9.1  8.9  8.9  7.5  4.1  1.3  8.6  8.6  8.2
-    ## [211]  7.4  2.9  3.8  1.4  7.0  4.2  4.4  1.7  5.6 10.1  7.5  1.4 14.5 10.4  7.1
-    ## [226]  8.4  0.7  4.5  5.6  6.5  8.0  4.7 10.5  0.1  0.6  5.0  5.4  8.9  7.2  3.8
-    ## [241]  5.4  8.4  7.4  9.3  3.8  9.5  5.9  9.6 11.7  0.8  7.6  8.6  7.6  8.7  7.4
-    ## [256]  7.0  5.5  7.6  8.0  2.0  8.5 10.9  5.9 10.2  9.6  2.1 11.3  8.0  7.6  8.2
-    ## [271] 11.6 13.4  7.4 10.0  7.9  5.1  3.9  6.2  7.6  5.2  3.2  9.2 16.4  8.2  1.1
-    ## [286]  5.2  3.5  7.1 10.9  3.5 10.8 10.2  2.0  4.4  6.9  7.7  0.3  3.1  5.2  7.1
-    ## [301]  3.3  4.3  1.3  3.5  3.1  7.6  7.9  7.1 12.1  7.1  7.6
+    ##   [1] 10.9  1.2  1.2 14.4  5.2 10.4  7.5  8.6 12.9  7.4  6.0  4.5  7.5 10.3  4.5
+    ##  [16]  6.5  5.8 11.1  1.2  8.9 10.1  8.8  7.9 11.1  3.2  2.0  7.3  0.9  1.2 13.6
+    ##  [31]  7.7  8.5  3.0 10.2 11.1 10.8  6.3  8.5  8.2  5.9  7.8  7.7  5.7  8.0  8.9
+    ##  [46] 10.0  4.4 10.6  9.7  1.6  1.1  5.9  8.9  5.2 11.8 13.4  7.4  7.2  5.9  7.5
+    ##  [61]  8.1  7.5  9.9 10.5  3.9  5.1 10.4  7.7  4.6  7.9  5.3  8.0 10.3  9.4 10.1
+    ##  [76]  7.4  8.4 11.4  7.7 12.1  6.2  7.5  8.2  7.9  6.5  4.0  2.1  7.9  8.3  4.5
+    ##  [91]  7.0  7.2 10.4  2.1  1.8  3.9 11.1 13.4 10.7 12.1  7.2 11.0  7.2  5.0  1.2
+    ## [106]  3.2  7.7  7.3  0.1  7.2  8.5 10.9  1.1  7.4  8.0  9.9  8.6  8.8  7.0  2.9
+    ## [121]  5.1  2.7 10.5  8.5  3.9  8.0  9.8  2.4  7.8  0.6  7.2  8.1  0.2 10.3  6.0
+    ## [136]  7.0  2.1  1.6  8.8  9.6  8.6 10.9  8.4  6.5  7.4  7.9  5.2  2.5  8.6  8.8
+    ## [151]  9.9  3.7  2.3  8.3 11.4 11.2  7.5  4.9  1.2  9.9  8.4  1.0  5.6  6.9  6.4
+    ## [166] 10.0 10.1  8.6  7.2  8.9 11.3  3.2  8.8  7.3  4.0  5.0  8.4  6.0  1.1  8.5
+    ## [181]  8.5 11.0  7.2  9.4  5.9  4.6  7.2  9.8  3.1 10.5 10.3  9.0 10.4  7.3  9.1
+    ## [196]  9.0  8.9  5.3  2.5  3.2  8.0  9.1  8.9  8.9  7.5  4.1  1.3  8.6  8.6  8.3
+    ## [211]  7.4  2.9  3.8  1.4  7.0  4.2  4.4  1.7  5.6 10.1  7.5  1.4 14.6 10.4  7.1
+    ## [226]  8.4  0.7  4.5  5.6  6.5  8.0  4.7 10.5  0.1  0.6  5.0  5.4  8.9  7.3  3.8
+    ## [241]  5.4  8.4  7.4  9.3  3.8  9.6  5.9  9.6 11.7  0.8  7.7  8.6  7.6  8.8  7.4
+    ## [256]  7.1  5.5  7.7  8.0  2.0  8.5 11.0  5.9 10.3  9.6  2.1 11.4  8.0  7.7  8.3
+    ## [271] 11.7 13.4  7.4 10.0  7.9  5.1  3.9  6.2  7.7  5.2  3.2  9.3 16.4  8.3  1.1
+    ## [286]  5.2  3.5  7.2 10.9  3.5 10.8 10.2  2.0  4.4  6.9  7.8  0.3  3.1  5.3  7.2
+    ## [301]  3.3  4.3  1.3  3.5  3.1  7.7  7.9  7.1 12.1  7.2  7.7
 
 ### 5.4 Trim
 
@@ -493,7 +498,7 @@ str(hr2 %>%
     ##  $ FromDiversityJobFairID: int  0 0 0 0 0 0 0 0 1 0 ...
     ##  $ Salary                : int  62506 104437 64955 64991 50825 57568 95660 59365 47837 50178 ...
     ##  $ Termd                 : int  0 1 1 0 1 0 0 0 0 0 ...
-    ##  $ Age                   : num  39 47 34 34 33 45 43 39 52 34 ...
+    ##  $ Age                   : num  24 25 34 34 24 45 43 39 25 24 ...
     ##  $ years_worked          : num  10.9 1.2 1.2 14.4 5.2 10.4 7.5 8.6 12.9 7.4 ...
     ##  $ EngagementSurvey      : num  4.6 4.96 3.02 4.84 5 5 3.04 5 4.46 5 ...
     ##  $ EmpSatisfaction       : int  5 3 3 5 4 5 3 4 3 5 ...
@@ -1166,25 +1171,25 @@ Age
 1
 </td>
 <td style="text-align:right;">
-43.41
+43.91
 </td>
 <td style="text-align:right;">
-8.87
+24.09
 </td>
 <td style="text-align:right;">
-30.00
+23.00
 </td>
 <td style="text-align:right;">
-36.00
+25.00
 </td>
 <td style="text-align:right;">
-42.00
+37.00
 </td>
 <td style="text-align:right;">
 49.0
 </td>
 <td style="text-align:right;">
-71.0
+103.0
 </td>
 </tr>
 <tr>
@@ -1198,10 +1203,10 @@ years_worked
 1
 </td>
 <td style="text-align:right;">
-6.96
+6.98
 </td>
 <td style="text-align:right;">
-3.17
+3.18
 </td>
 <td style="text-align:right;">
 0.10
@@ -1429,7 +1434,7 @@ ggplot(df6.1, aes(x = my_values, fill = my_var)) +
        y = "Count")
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+![](hr_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
 
 ### 6.2 factor variables 1
 
@@ -1466,7 +1471,7 @@ ggplot(df6.2, aes(y = label, x = count, fill = my_values)) +
        x = "Count")
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+![](hr_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
 
 Following shows the number of workers in each position in the
 organisation.
@@ -1489,7 +1494,7 @@ hr2 %>%
   scale_x_continuous(lim = c(0, 140))
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
+![](hr_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
 
 ### 6.3 factor variables 2
 
@@ -1523,11 +1528,161 @@ ggplot(df6.3, aes(y = label, x = count, fill = my_values)) +
        x = "Count")
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+![](hr_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
 
 ## 7 CLUSTERING
 
+``` r
+gowerdis <- daisy(hr2, metric = "gower")
+summary(gowerdis)
+```
+
+    ## 48205 dissimilarities, summarized :
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ## 0.03097 0.33431 0.41347 0.41488 0.49396 0.85361 
+    ## Metric :  mixed ;  Types = N, N, I, N, N, N, I, N, N, N, N, N, I, N, N, N, N, N, N, I, N, I, I, I 
+    ## Number of objects : 311
+
+``` r
+class(gowerdis)
+```
+
+    ## [1] "dissimilarity" "dist"
+
+### 7.1 Hierarchical Clustering
+
+``` r
+hr2.hc <- hclust(gowerdis, method = "complete")
+
+fviz_dend(hr2.hc, cex = 0.5)
+```
+
+    ## Warning: `guides(<scale> = FALSE)` is deprecated. Please use `guides(<scale> =
+    ## "none")` instead.
+
+![](hr_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
+
+``` r
+group <- cutree(hr2.hc, k = 2)
+table(group)
+```
+
+    ## group
+    ##   1   2 
+    ## 182 129
+
+``` r
+fviz_dend(hr2.hc,
+          k = 4,
+          rect = T,
+          cex = 0.5)
+```
+
+    ## Warning: `guides(<scale> = FALSE)` is deprecated. Please use `guides(<scale> =
+    ## "none")` instead.
+
+![](hr_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+
+### 7.1 PAM
+
+**Optimal K**
+
+``` r
+avg_silhouette <- NA
+  for(i in 2:10){
+    gower.pam <- pam(gowerdis, diss = T, k = i)
+    avg_silhouette[i] <- gower.pam$silinfo$avg.width
+  }
+
+avg_silhouette
+```
+
+    ##  [1]         NA 0.20602567 0.11305698 0.08450268 0.08597324 0.08184562
+    ##  [7] 0.08519360 0.09101405 0.09515412 0.07987419
+
+``` r
+plot(avg_silhouette,
+     xlab = "Total number of clusters",
+     ylab = "Average Silhouette",
+     bty = "n")
+
+lines(avg_silhouette)
+```
+
+![](hr_files/figure-gfm/unnamed-chunk-33-1.png)<!-- --> The data is
+suggested to be divided into 2 clusters, the 2 clusters are well
+distinguishable from each other.
+
+Applying the suggested k to perform the PAM again to cluster the dataset
+into 2 clusters.
+
+``` r
+gower.pam <- pam(gowerdis, diss = T, k = 2)
+```
+
+The dataset now has following two groups of data for cluster 1 and
+cluster 2.
+
+``` r
+table(gower.pam$clustering)
+```
+
+    ## 
+    ##   1   2 
+    ## 218  93
+
+Adding the clustering data into the original dataset,
+
+``` r
+# Add cluster grouping to data frame and convert this column into factor
+
+hr2_pam <- cbind(hr2, cluster = gower.pam$clustering) %>% 
+  mutate(cluster = as.factor(cluster))
+```
+
 ## 8 PRINCIPAL COMPONENT
+
+Following code saves the cleaned dataset into csv into the allocated
+file for storage purpose.
+
+``` r
+write.csv(hr2_pam, "hr2_pam.csv")
+```
+
+Import the csv file back and a little transformation (convert character
+variable into factor.)
+
+``` r
+hr_data <- read.csv("hr2_pam.csv", row.names = 1)
+hr_data <- hr_data %>% 
+  mutate_if(is.character, as.factor) %>% 
+  mutate(cluster = as.factor(cluster)
+         ) 
+```
+
+``` r
+kar.famd <- FAMD(hr_data, graph = F)
+```
+
+``` r
+fviz_famd_ind(kar.famd, 
+              habillage = "cluster",
+              repel = T)
+```
+
+    ## Warning: ggrepel: 99 unlabeled data points (too many overlaps). Consider
+    ## increasing max.overlaps
+
+    ## Warning: ggrepel: 287 unlabeled data points (too many overlaps). Consider
+    ## increasing max.overlaps
+
+![](hr_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
+
+``` r
+fviz_famd_var(kar.famd)
+```
+
+![](hr_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
 
 ## REFERENCE
 
@@ -1539,3 +1694,7 @@ Rich Huebner 2020, *Human Resources Data Set*, viewed 2 May 2022,
 
 Rich Huebner 2021, *Codebook - HR Dataset v14*, viewed 3 May 2022,
 <https://rpubs.com/rhuebner/hrd_cb_v14>
+
+Clustering and dimensionality reduction techniques on the Berlin Airbnb
+data and the problem of mixed data (n.d.),viewed 15 May 2022
+<https://rstudio-pubs-static.s3.amazonaws.com/579984_6b9efbf84ee24f00985c29e24265d2ba.html>

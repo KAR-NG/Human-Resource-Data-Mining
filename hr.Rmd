@@ -25,6 +25,8 @@ library(skimr)
 library(tidytext)
 library(factoextra)
 library(FactoMineR)
+library(cluster)    # For daisy function
+library(cowplot)
 
 ```
 
@@ -60,12 +62,15 @@ This dataset
 Following code upload the dataset into R.
 
 ```{r}
-hr <- read.csv("hr_dataset.csv", header = T,
-               fileEncoding = "UTF-8-BOM", 
-               row.names = 1, 
-               na.strings = T)
+hr <- read.csv("hr_dataset.csv", 
+               fileEncoding = "UTF-8-BOM",
+               na.strings = T,
+               header = T,
+               row.names = NULL)
 
 ```
+
+
 
 ### 4.2 Data description
 
@@ -93,6 +98,15 @@ The first column is a column recording employee names. I have made this column t
 ## 5 DATA CLEANING
 
 The data may seem perfectly to go however numerous important cleaning and manipulation tasks have been identified and will be perfectly completed in this section. 
+
+```{r}
+hr <- hr %>% 
+  column_to_rownames(var = "Employee_Name")
+
+```
+
+
+
 
 ### 5.1 Variables removals
 
@@ -426,19 +440,132 @@ ggplot(df6.3, aes(y = label, x = count, fill = my_values)) +
 
 ## 7 CLUSTERING
 
+
+
+
+
+
 ```{r}
+gowerdis <- daisy(hr2, metric = "gower")
+summary(gowerdis)
+class(gowerdis)
+
+```
+### 7.1 Hierarchical Clustering
+
+```{r, fig.height=7, fig.width=12}
+hr2.hc <- hclust(gowerdis, method = "complete")
+
+fviz_dend(hr2.hc, cex = 0.5)
+
+```
+
+
+
+```{r}
+group <- cutree(hr2.hc, k = 2)
+table(group)
+
+```
+
+```{r, fig.width=12, fig.height=7}
+fviz_dend(hr2.hc,
+          k = 4,
+          rect = T,
+          cex = 0.5)
 
 ```
 
 
 
 
+
+### 7.1 PAM
+
+**Optimal K**
+
+```{r}
+avg_silhouette <- NA
+  for(i in 2:10){
+    gower.pam <- pam(gowerdis, diss = T, k = i)
+    avg_silhouette[i] <- gower.pam$silinfo$avg.width
+  }
+
+avg_silhouette
+
+```
+```{r}
+plot(avg_silhouette,
+     xlab = "Total number of clusters",
+     ylab = "Average Silhouette",
+     bty = "n")
+
+lines(avg_silhouette)
+
+
+```
+The data is suggested to be divided into 2 clusters, the 2 clusters are well distinguishable from each other. 
+
+Applying the suggested k to perform the PAM again to cluster the dataset into 2 clusters. 
+
+```{r}
+gower.pam <- pam(gowerdis, diss = T, k = 2)
+
+```
+
+The dataset now has following two groups of data for cluster 1 and cluster 2. 
+
+```{r}
+table(gower.pam$clustering)
+
+```
+Adding the clustering data into the original dataset,
+
+```{r}
+# Add cluster grouping to data frame and convert this column into factor
+
+hr2_pam <- cbind(hr2, cluster = gower.pam$clustering) %>% 
+  mutate(cluster = as.factor(cluster))
+
+
+```
+
+
+
 ## 8 PRINCIPAL COMPONENT
 
+Following code saves the cleaned dataset into csv into the allocated file for storage purpose.
 
+```{r}
+write.csv(hr2_pam, "hr2_pam.csv")
+```
 
+Import the csv file back and a little transformation (convert character variable into factor.)
 
+```{r}
 
+hr_data <- read.csv("hr2_pam.csv", row.names = 1)
+hr_data <- hr_data %>% 
+  mutate_if(is.character, as.factor) %>% 
+  mutate(cluster = as.factor(cluster)
+         ) 
+
+```
+
+```{r}
+kar.famd <- FAMD(hr_data, graph = F)
+```
+
+```{r}
+fviz_famd_ind(kar.famd, 
+              habillage = "cluster",
+              repel = T)
+
+```
+
+```{r}
+fviz_famd_var(kar.famd)
+```
 
 
 
@@ -454,3 +581,4 @@ Rich Huebner 2020, *Human Resources Data Set*, viewed 2 May 2022, https://www.ka
 
 Rich Huebner 2021, *Codebook - HR Dataset v14*, viewed 3 May 2022, https://rpubs.com/rhuebner/hrd_cb_v14
 
+Clustering and dimensionality reduction techniques on the Berlin Airbnb data and the problem of mixed data (n.d.),viewed 15 May 2022 https://rstudio-pubs-static.s3.amazonaws.com/579984_6b9efbf84ee24f00985c29e24265d2ba.html
