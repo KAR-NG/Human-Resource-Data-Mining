@@ -23,9 +23,11 @@ Kar Ng
     -   [6.1 Numerical variables](#61-numerical-variables)
     -   [6.2 factor variables 1](#62-factor-variables-1)
     -   [6.3 factor variables 2](#63-factor-variables-2)
+    -   [6.4 Distribution study of continuous
+        variable](#64-distribution-study-of-continuous-variable)
 -   [7 CLUSTERING](#7-clustering)
-    -   [7.1 Hierarchical Clustering](#71-hierarchical-clustering)
-    -   [7.1 PAM](#71-pam)
+    -   [7.1 Distance metrics](#71-distance-metrics)
+    -   [7.1 Gower with PAM](#71-gower-with-pam)
 -   [8 PRINCIPAL COMPONENT](#8-principal-component)
 -   [REFERENCE](#reference)
 
@@ -43,6 +45,7 @@ library(factoextra)
 library(FactoMineR)
 library(cluster)    # For daisy function
 library(cowplot)
+library(Rtsne)
 ```
 
 ## 3 INTRODUCTION
@@ -165,94 +168,94 @@ Randomly sample 10 rows of data from the table:
 sample_n(hr, 10)
 ```
 
-    ##        Employee_Name EmpID MarriedID MaritalStatusID GenderID EmpStatusID
-    ## 1     Motlagh   Dawn 10254         0               2        0           1
-    ## 2  Carter  Michelle  10040         0               0        0           1
-    ## 3  Akinkuolie  Sarah 10196         1               1        0           5
-    ## 4  Immediato  Walter 10289         1               1        1           5
-    ## 5    Eaton  Marianne 10064         1               1        0           5
-    ## 6     Onque  Jasmine 10121         0               0        0           1
-    ## 7     Gonzalez  Cayo 10031         0               2        1           1
-    ## 8        Smith  John 10291         0               2        1           1
-    ## 9      Gerke  Melisa 10122         0               2        0           5
-    ## 10       King  Janet 10089         1               1        0           1
+    ##          Employee_Name EmpID MarriedID MaritalStatusID GenderID EmpStatusID
+    ## 1        Walker  Roger 10190         0               0        1           1
+    ## 2    Knapp  Bradley  J 10208         0               0        1           1
+    ## 3  Fernandes  Nilson   10308         1               1        1           1
+    ## 4       Simard  Kramer 10178         1               1        1           1
+    ## 5       Rhoads  Thomas 10058         0               2        1           5
+    ## 6       Daneault  Lynn 10099         0               0        0           1
+    ## 7        Wilkes  Annie 10204         0               2        0           5
+    ## 8       Maurice  Shana 10053         1               1        0           1
+    ## 9     Villanueva  Noah 10253         0               0        1           1
+    ## 10    Bunbury  Jessica 10188         1               1        0           5
     ##    DeptID PerfScoreID FromDiversityJobFairID Salary Termd PositionID
-    ## 1       5           3                      0  63430     0         19
-    ## 2       6           3                      0  71860     0          3
-    ## 3       5           3                      0  64955     1         20
-    ## 4       5           2                      0  83082     1         18
-    ## 5       5           3                      0  60070     1         19
-    ## 6       6           3                      0  63051     0          3
-    ## 7       5           4                      1  59892     0         19
-    ## 8       6           2                      1  72992     0         21
-    ## 9       5           3                      1  51505     1         19
-    ## 10      2           3                      0 250000     0         16
-    ##                    Position State   Zip       DOB Sex MaritalDesc CitizenDesc
-    ## 1   Production Technician I    MA  2453 7/07/1984   F    Divorced  US Citizen
-    ## 2        Area Sales Manager    VT  5664  05/15/63   F      Single  US Citizen
-    ## 3  Production Technician II    MA  1810  09/19/88   F     Married  US Citizen
-    ## 4        Production Manager    MA  2128  11/15/76  M      Married  US Citizen
-    ## 5   Production Technician I    MA  2343 9/05/1991   F     Married  US Citizen
-    ## 6        Area Sales Manager    FL 33174 5/11/1990   F      Single  US Citizen
-    ## 7   Production Technician I    MA  2108  09/29/69  M     Divorced  US Citizen
-    ## 8             Sales Manager    MA  1886  08/16/84  M     Divorced  US Citizen
-    ## 9   Production Technician I    MA  2330  05/15/70   F    Divorced  US Citizen
-    ## 10          President & CEO    MA  1902  09/21/54   F     Married  US Citizen
-    ##    HispanicLatino                  RaceDesc DateofHire DateofTermination
-    ## 1              No                     White  4/01/2013                  
-    ## 2              No                     White  8/18/2014                  
-    ## 3              No                     White  7/05/2011         9/24/2012
-    ## 4              No                     Asian  2/21/2011         9/24/2012
-    ## 5              No                     White  4/04/2011         6/06/2017
-    ## 6             Yes                     White  9/30/2013                  
-    ## 7              No Black or African American  7/11/2011                  
-    ## 8              No Black or African American  5/18/2014                  
-    ## 9              No Black or African American 11/07/2011        11/15/2016
-    ## 10            Yes                     White  7/02/2012                  
-    ##           TermReason       EmploymentStatus        Department
-    ## 1  N/A-StillEmployed                 Active Production       
-    ## 2  N/A-StillEmployed                 Active             Sales
-    ## 3              hours Voluntarily Terminated Production       
-    ## 4            unhappy Voluntarily Terminated Production       
-    ## 5           military Voluntarily Terminated Production       
-    ## 6  N/A-StillEmployed                 Active             Sales
-    ## 7  N/A-StillEmployed                 Active Production       
-    ## 8  N/A-StillEmployed                 Active             Sales
-    ## 9              hours Voluntarily Terminated Production       
-    ## 10 N/A-StillEmployed                 Active  Executive Office
-    ##           ManagerName ManagerID  RecruitmentSource  PerformanceScore
-    ## 1        Elijiah Gray        16           LinkedIn       Fully Meets
-    ## 2          John Smith        17             Indeed       Fully Meets
-    ## 3      Kissy Sullivan        20           LinkedIn       Fully Meets
-    ## 4          Janet King         2             Indeed Needs Improvement
-    ## 5      Kissy Sullivan        20      Google Search       Fully Meets
-    ## 6       Lynn Daneault        21             Indeed       Fully Meets
-    ## 7      Brannon Miller        12 Diversity Job Fair           Exceeds
-    ## 8      Debra Houlihan        15 Diversity Job Fair Needs Improvement
-    ## 9        Elijiah Gray        16 Diversity Job Fair       Fully Meets
-    ## 10 Board of Directors         9             Indeed       Fully Meets
-    ##    EngagementSurvey EmpSatisfaction SpecialProjectsCount
-    ## 1              4.40               4                    0
-    ## 2              5.00               5                    0
-    ## 3              3.02               3                    0
-    ## 4              2.34               2                    0
-    ## 5              5.00               3                    0
-    ## 6              4.28               3                    0
-    ## 7              4.50               4                    0
-    ## 8              2.40               4                    0
-    ## 9              4.24               4                    0
-    ## 10             4.83               3                    0
-    ##    LastPerformanceReview_Date DaysLateLast30 Absences
-    ## 1                   1/17/2019              0       18
-    ## 2                   1/21/2019              0        7
-    ## 3                   5/15/2012              0        3
-    ## 4                   4/12/2012              3        4
-    ## 5                   4/09/2017              0        7
-    ## 6                   1/25/2019              0        1
-    ## 7                   2/18/2019              0        1
-    ## 8                   1/16/2019              2       16
-    ## 9                   4/29/2016              0        2
-    ## 10                  1/17/2019              0       10
+    ## 1       5           3                      0  66541     0         20
+    ## 2       5           3                      0  46654     0         19
+    ## 3       5           1                      0  64057     0         19
+    ## 4       3           3                      0  87826     0          9
+    ## 5       5           3                      0  45115     1         19
+    ## 6       6           3                      0  65729     0         21
+    ## 7       5           3                      0  58062     1         19
+    ## 8       5           3                      0  54132     0         19
+    ## 9       6           3                      0  55875     0          3
+    ## 10      6           3                      0  74326     1          3
+    ##                    Position State   Zip        DOB Sex MaritalDesc
+    ## 1  Production Technician II    MA  2459  2/10/1976  M       Single
+    ## 2   Production Technician I    MA  1721 11/10/1977  M       Single
+    ## 3   Production Technician I    MA  2132   10/18/89  M      Married
+    ## 4              Data Analyst    MA  2110  2/08/1970  M      Married
+    ## 5   Production Technician I    MA  2176   07/22/82  M     Divorced
+    ## 6             Sales Manager    VT  5473   04/19/90   F      Single
+    ## 7   Production Technician I    MA  1876   07/30/83   F    Divorced
+    ## 8   Production Technician I    MA  2330   11/22/77   F     Married
+    ## 9        Area Sales Manager    ME  4063  7/11/1989  M       Single
+    ## 10       Area Sales Manager    VA 21851  6/01/1964   F     Married
+    ##            CitizenDesc HispanicLatino                  RaceDesc DateofHire
+    ## 1           US Citizen             No Black or African American  8/18/2014
+    ## 2           US Citizen             No Black or African American  2/17/2014
+    ## 3           US Citizen             No                     White  5/11/2015
+    ## 4           US Citizen            Yes                     White  1/05/2015
+    ## 5           US Citizen            Yes                     White  5/16/2011
+    ## 6           US Citizen             No                     White  5/05/2014
+    ## 7           US Citizen             No                     White  1/10/2011
+    ## 8           US Citizen             No                     White  5/31/2011
+    ## 9           US Citizen             No                     Asian  3/05/2012
+    ## 10 Eligible NonCitizen             No Black or African American  8/15/2011
+    ##    DateofTermination        TermReason       EmploymentStatus        Department
+    ## 1                    N/A-StillEmployed                 Active Production       
+    ## 2                    N/A-StillEmployed                 Active Production       
+    ## 3                    N/A-StillEmployed                 Active Production       
+    ## 4                    N/A-StillEmployed                 Active             IT/IS
+    ## 5          1/15/2016          retiring Voluntarily Terminated Production       
+    ## 6                    N/A-StillEmployed                 Active             Sales
+    ## 7          5/14/2012  Another position Voluntarily Terminated Production       
+    ## 8                    N/A-StillEmployed                 Active Production       
+    ## 9                    N/A-StillEmployed                 Active             Sales
+    ## 10         8/02/2014  Another position Voluntarily Terminated             Sales
+    ##       ManagerName ManagerID RecruitmentSource PerformanceScore EngagementSurvey
+    ## 1   Ketsia Liebig        19 Employee Referral      Fully Meets             3.11
+    ## 2   Ketsia Liebig        19          LinkedIn      Fully Meets             3.10
+    ## 3        Amy Dunn        11            Indeed              PIP             1.56
+    ## 4      Simon Roup         4 Employee Referral      Fully Meets             3.32
+    ## 5    Elijiah Gray        16          LinkedIn      Fully Meets             5.00
+    ## 6  Debra Houlihan        15            Indeed      Fully Meets             4.62
+    ## 7   Ketsia Liebig        19     Google Search      Fully Meets             3.60
+    ## 8   David Stanley        14            Indeed      Fully Meets             5.00
+    ## 9      John Smith        17           Website      Fully Meets             4.50
+    ## 10     John Smith        17     Google Search      Fully Meets             3.14
+    ##    EmpSatisfaction SpecialProjectsCount LastPerformanceReview_Date
+    ## 1                5                    0                  2/12/2019
+    ## 2                3                    0                  2/06/2019
+    ## 3                5                    0                  1/03/2019
+    ## 4                3                    7                  1/14/2019
+    ## 5                4                    0                  3/30/2015
+    ## 6                4                    0                  1/24/2019
+    ## 7                5                    0                  2/06/2011
+    ## 8                4                    0                  1/10/2019
+    ## 9                4                    0                  1/18/2019
+    ## 10               5                    0                  2/10/2013
+    ##    DaysLateLast30 Absences
+    ## 1               0        4
+    ## 2               0        3
+    ## 3               6       15
+    ## 4               0       16
+    ## 5               0       11
+    ## 6               0        8
+    ## 7               0        9
+    ## 8               0        8
+    ## 9               0       11
+    ## 10              1       19
 
 The first column is a column recording employee names. I have made this
 column the name of each rows (or known as observation). It is the
@@ -394,23 +397,23 @@ employee in the dataset.
 hr2$years_worked
 ```
 
-    ##   [1] 10.9  1.2  1.2 14.4  5.2 10.4  7.5  8.6 12.9  7.4  6.0  4.5  7.5 10.3  4.5
+    ##   [1] 10.9  1.2  1.2 14.4  5.2 10.4  7.5  8.7 12.9  7.4  6.0  4.5  7.5 10.3  4.5
     ##  [16]  6.5  5.8 11.1  1.2  8.9 10.1  8.8  7.9 11.1  3.2  2.0  7.3  0.9  1.2 13.6
     ##  [31]  7.7  8.5  3.0 10.2 11.1 10.8  6.3  8.5  8.2  5.9  7.8  7.7  5.7  8.0  8.9
-    ##  [46] 10.0  4.4 10.6  9.7  1.6  1.1  5.9  8.9  5.2 11.8 13.4  7.4  7.2  5.9  7.5
-    ##  [61]  8.1  7.5  9.9 10.5  3.9  5.1 10.4  7.7  4.6  7.9  5.3  8.0 10.3  9.4 10.1
+    ##  [46] 10.0  4.4 10.6  9.7  1.6  1.1  5.9  8.9  5.2 11.9 13.4  7.4  7.2  5.9  7.5
+    ##  [61]  8.1  7.5  9.9 10.6  3.9  5.1 10.4  7.7  4.6  7.9  5.3  8.0 10.3  9.4 10.1
     ##  [76]  7.4  8.4 11.4  7.7 12.1  6.2  7.5  8.2  7.9  6.5  4.0  2.1  7.9  8.3  4.5
     ##  [91]  7.0  7.2 10.4  2.1  1.8  3.9 11.1 13.4 10.7 12.1  7.2 11.0  7.2  5.0  1.2
-    ## [106]  3.2  7.7  7.3  0.1  7.2  8.5 10.9  1.1  7.4  8.0  9.9  8.6  8.8  7.0  2.9
+    ## [106]  3.2  7.7  7.3  0.1  7.2  8.5 10.9  1.1  7.4  8.0  9.9  8.7  8.8  7.0  2.9
     ## [121]  5.1  2.7 10.5  8.5  3.9  8.0  9.8  2.4  7.8  0.6  7.2  8.1  0.2 10.3  6.0
-    ## [136]  7.0  2.1  1.6  8.8  9.6  8.6 10.9  8.4  6.5  7.4  7.9  5.2  2.5  8.6  8.8
+    ## [136]  7.0  2.1  1.6  8.8  9.6  8.7 10.9  8.4  6.5  7.4  7.9  5.2  2.5  8.7  8.8
     ## [151]  9.9  3.7  2.3  8.3 11.4 11.2  7.5  4.9  1.2  9.9  8.4  1.0  5.6  6.9  6.4
-    ## [166] 10.0 10.1  8.6  7.2  8.9 11.3  3.2  8.8  7.3  4.0  5.0  8.4  6.0  1.1  8.5
-    ## [181]  8.5 11.0  7.2  9.4  5.9  4.6  7.2  9.8  3.1 10.5 10.3  9.0 10.4  7.3  9.1
-    ## [196]  9.0  8.9  5.3  2.5  3.2  8.0  9.1  8.9  8.9  7.5  4.1  1.3  8.6  8.6  8.3
+    ## [166] 10.0 10.1  8.7  7.2  8.9 11.3  3.2  8.8  7.3  4.0  5.0  8.4  6.0  1.1  8.5
+    ## [181]  8.5 11.0  7.2  9.4  5.9  4.6  7.2  9.8  3.1 10.6 10.3  9.0 10.4  7.3  9.2
+    ## [196]  9.0  8.9  5.3  2.5  3.2  8.0  9.2  8.9  8.9  7.5  4.1  1.3  8.7  8.7  8.3
     ## [211]  7.4  2.9  3.8  1.4  7.0  4.2  4.4  1.7  5.6 10.1  7.5  1.4 14.6 10.4  7.1
     ## [226]  8.4  0.7  4.5  5.6  6.5  8.0  4.7 10.5  0.1  0.6  5.0  5.4  8.9  7.3  3.8
-    ## [241]  5.4  8.4  7.4  9.3  3.8  9.6  5.9  9.6 11.7  0.8  7.7  8.6  7.6  8.8  7.4
+    ## [241]  5.4  8.4  7.4  9.3  3.8  9.6  5.9  9.6 11.7  0.8  7.7  8.7  7.7  8.8  7.4
     ## [256]  7.1  5.5  7.7  8.0  2.0  8.5 11.0  5.9 10.3  9.6  2.1 11.4  8.0  7.7  8.3
     ## [271] 11.7 13.4  7.4 10.0  7.9  5.1  3.9  6.2  7.7  5.2  3.2  9.3 16.4  8.3  1.1
     ## [286]  5.2  3.5  7.2 10.9  3.5 10.8 10.2  2.0  4.4  6.9  7.8  0.3  3.1  5.3  7.2
@@ -499,7 +502,7 @@ str(hr2 %>%
     ##  $ Salary                : int  62506 104437 64955 64991 50825 57568 95660 59365 47837 50178 ...
     ##  $ Termd                 : int  0 1 1 0 1 0 0 0 0 0 ...
     ##  $ Age                   : num  24 25 34 34 24 45 43 39 25 24 ...
-    ##  $ years_worked          : num  10.9 1.2 1.2 14.4 5.2 10.4 7.5 8.6 12.9 7.4 ...
+    ##  $ years_worked          : num  10.9 1.2 1.2 14.4 5.2 10.4 7.5 8.7 12.9 7.4 ...
     ##  $ EngagementSurvey      : num  4.6 4.96 3.02 4.84 5 5 3.04 5 4.46 5 ...
     ##  $ EmpSatisfaction       : int  5 3 3 5 4 5 3 4 3 5 ...
     ##  $ SpecialProjectsCount  : int  0 6 0 0 0 0 4 0 0 6 ...
@@ -1203,7 +1206,7 @@ years_worked
 1
 </td>
 <td style="text-align:right;">
-6.98
+6.99
 </td>
 <td style="text-align:right;">
 3.18
@@ -1530,115 +1533,423 @@ ggplot(df6.3, aes(y = label, x = count, fill = my_values)) +
 
 ![](hr_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
 
-## 7 CLUSTERING
+### 6.4 Distribution study of continuous variable
+
+A number of continuous variables are non-normality and contains
+outliers.
 
 ``` r
-gowerdis <- daisy(hr2, metric = "gower")
-summary(gowerdis)
+# set df
+
+df6.4 <- hr2 %>% select_if(is.numeric)
+df6.4 <- df6.4 %>% 
+  pivot_longer(c(1:7), names_to = "myvar", values_to = "myval") %>% 
+  mutate(myvar = as.factor(myvar))
+
+# plot
+
+ggplot(df6.4, aes(y = myvar, x = myval)) +
+  geom_boxplot() +
+  facet_wrap(~myvar, scales = "free")
+```
+
+![](hr_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
+
+After completing basic simple visualisation, we will now dive into more
+advanced data mining technique.
+
+## 7 CLUSTERING
+
+Clustering is a series of different techniques to find distinct groups
+of data within a dataset. To be specific in terms of “observation” and
+“variable”, clustering is trying to group similar observations together,
+and each group should be distinct from each other.
+
+### 7.1 Distance metrics
+
+The data is a mixed dataset and a special type of distance metrics to
+measure distance between observation will be used which is called Gower
+distance. For continuous variables inside the dataset, the Gower
+function will use manhattan distance, whereas for categorical variables,
+Gower function will use dice distance. Gower will then combine all these
+distance together and form a single distance value and which can be
+known as Gower distance.
+
+To compute gower distance between observations,
+
+``` r
+glimpse(hr2)
+```
+
+    ## Rows: 311
+    ## Columns: 24
+    ## $ MarriedID              <fct> 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0,~
+    ## $ FromDiversityJobFairID <fct> 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0,~
+    ## $ Salary                 <int> 62506, 104437, 64955, 64991, 50825, 57568, 9566~
+    ## $ Termd                  <fct> 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1,~
+    ## $ Position               <fct> Production Technician I, Sr. DBA, Production Te~
+    ## $ State                  <fct> MA, MA, MA, MA, MA, MA, MA, MA, MA, MA, MA, MA,~
+    ## $ Age                    <dbl> 24, 25, 34, 34, 24, 45, 43, 39, 25, 24, 25, 48,~
+    ## $ Sex                    <fct> M, M, F, F, F, F, F, M, F, M, F, M, M, M, M, M,~
+    ## $ MaritalDesc            <fct> Single, Married, Married, Married, Divorced, Si~
+    ## $ CitizenDesc            <fct> US Citizen, US Citizen, US Citizen, US Citizen,~
+    ## $ HispanicLatino         <fct> No, No, No, No, No, No, No, No, No, No, Yes, Ye~
+    ## $ RaceDesc               <fct> White, White, White, White, White, White, White~
+    ## $ years_worked           <dbl> 10.9, 1.2, 1.2, 14.4, 5.2, 10.4, 7.5, 8.7, 12.9~
+    ## $ TermReason             <fct> "N/A-StillEmployed", "career change", "hours", ~
+    ## $ EmploymentStatus       <fct> Active, Voluntarily Terminated, Voluntarily Ter~
+    ## $ Department             <fct> Production, IT/IS, Production, Production, Prod~
+    ## $ ManagerName            <fct> Michael Albert, Simon Roup, Kissy Sullivan, Eli~
+    ## $ RecruitmentSource      <fct> LinkedIn, Indeed, LinkedIn, Indeed, Google Sear~
+    ## $ PerformanceScore       <fct> Exceeds, Fully Meets, Fully Meets, Fully Meets,~
+    ## $ EngagementSurvey       <dbl> 4.60, 4.96, 3.02, 4.84, 5.00, 5.00, 3.04, 5.00,~
+    ## $ EmpSatisfaction        <fct> 5, 3, 3, 5, 4, 5, 3, 4, 3, 5, 4, 3, 4, 4, 5, 4,~
+    ## $ SpecialProjectsCount   <int> 0, 6, 0, 0, 0, 0, 4, 0, 0, 6, 0, 0, 5, 0, 0, 0,~
+    ## $ DaysLateLast30         <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,~
+    ## $ Absences               <int> 1, 17, 3, 15, 2, 15, 19, 19, 4, 16, 12, 15, 9, ~
+
+``` r
+gower.dis <- daisy(hr2, 
+                   metric = "gower",
+                   type = list(logratio = c("Age", "DaysLateLast30", "Salary", "SpecialProjectsCount"))) # log transformation to which column?
+
+summary(gower.dis)
 ```
 
     ## 48205 dissimilarities, summarized :
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ## 0.03097 0.33431 0.41347 0.41488 0.49396 0.85361 
+    ## 0.03686 0.35647 0.43925 0.43992 0.52201 0.88346 
     ## Metric :  mixed ;  Types = N, N, I, N, N, N, I, N, N, N, N, N, I, N, N, N, N, N, N, I, N, I, I, I 
     ## Number of objects : 311
 
+The Gower distance metric has now been computed for 311 rows of
+observations for this dataset with mixed data-types.
+
+Following show the most similar and different pair in the dataset.
+
 ``` r
-class(gowerdis)
+gower_mat <- as.matrix(gower.dis)
+
+hr2[which(gower_mat == min(gower_mat[gower_mat != min(gower_mat)]),   # min for most similar
+          arr.ind = T)[1, ], ]
 ```
 
-    ## [1] "dissimilarity" "dist"
-
-### 7.1 Hierarchical Clustering
+    ##                   MarriedID FromDiversityJobFairID Salary Termd
+    ## Mahoney  Lauren           0                      0  45395     0
+    ## Hudson  Jane              0                      0  55425     0
+    ##                                  Position State Age Sex MaritalDesc CitizenDesc
+    ## Mahoney  Lauren   Production Technician I    MA  24   F      Single  US Citizen
+    ## Hudson  Jane      Production Technician I    MA  24   F      Single  US Citizen
+    ##                   HispanicLatino RaceDesc years_worked        TermReason
+    ## Mahoney  Lauren               No    White          8.4 N/A-StillEmployed
+    ## Hudson  Jane                  No    White         10.3 N/A-StillEmployed
+    ##                   EmploymentStatus Department   ManagerName RecruitmentSource
+    ## Mahoney  Lauren             Active Production Ketsia Liebig          LinkedIn
+    ## Hudson  Jane                Active Production Ketsia Liebig          LinkedIn
+    ##                   PerformanceScore EngagementSurvey EmpSatisfaction
+    ## Mahoney  Lauren        Fully Meets              4.6               4
+    ## Hudson  Jane           Fully Meets              4.8               4
+    ##                   SpecialProjectsCount DaysLateLast30 Absences
+    ## Mahoney  Lauren                      0              0       14
+    ## Hudson  Jane                         0              0        4
 
 ``` r
-hr2.hc <- hclust(gowerdis, method = "complete")
-
-fviz_dend(hr2.hc, cex = 0.5)
+hr2[which(gower_mat == max(gower_mat[gower_mat != max(gower_mat)]),   # max for most different
+          arr.ind = T)[1, ], ]
 ```
 
-    ## Warning: `guides(<scale> = FALSE)` is deprecated. Please use `guides(<scale> =
-    ## "none")` instead.
+    ##                  MarriedID FromDiversityJobFairID Salary Termd
+    ## Monroe  Peter            1                      1 157000     0
+    ## Anderson  Carol          0                      0  50825     1
+    ##                                 Position State Age Sex MaritalDesc CitizenDesc
+    ## Monroe  Peter         IT Manager - Infra    MA 103   M     Married Non-Citizen
+    ## Anderson  Carol  Production Technician I    MA  24   F    Divorced  US Citizen
+    ##                  HispanicLatino                  RaceDesc years_worked
+    ## Monroe  Peter               Yes Black or African American         10.3
+    ## Anderson  Carol              No                     White          5.2
+    ##                         TermReason       EmploymentStatus Department
+    ## Monroe  Peter    N/A-StillEmployed                 Active      IT/IS
+    ## Anderson  Carol   return to school Voluntarily Terminated Production
+    ##                      ManagerName  RecruitmentSource  PerformanceScore
+    ## Monroe  Peter    Jennifer Zamora Diversity Job Fair Needs Improvement
+    ## Anderson  Carol   Webster Butler      Google Search       Fully Meets
+    ##                  EngagementSurvey EmpSatisfaction SpecialProjectsCount
+    ## Monroe  Peter                2.39               3                    6
+    ## Anderson  Carol              5.00               4                    0
+    ##                  DaysLateLast30 Absences
+    ## Monroe  Peter                 4       13
+    ## Anderson  Carol               0        2
 
-![](hr_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
+### 7.1 Gower with PAM
+
+K-means clustering method cannot be applied on the daisy function, and
+therefore the clustering algorithms typically used for Gower distance is
+Partitioning around Medoid (PAM) and Hierarchical clustering.
+
+**Determining Best K**
+
+This section will perform PAM, however, the optimal will need to be
+determined. I will use silhouette width for this task, which is one of
+the internal cluster validation to see the quality of cluster. It has
+value ranges from -1 to 1, the higher the silhouette metric, the better
+the clustering. In fact, the overall silhouette metric of a k (number of
+clustering) is computed from all silhouette metric of individual
+observation within relevant cluster.
+
+Applying for-loop for all silhouette width of each K:
 
 ``` r
-group <- cutree(hr2.hc, k = 2)
-table(group)
+sil_df <- c(NA)
+
+for (i in 2:10) {
+  res.pam <- pam(gower.dis, diss = T, k = i)
+  sil_df[i] <- res.pam$silinfo$avg.width
+}
+
+sil_df
 ```
 
-    ## group
-    ##   1   2 
-    ## 182 129
+    ##  [1]         NA 0.20980180 0.11209966 0.09928759 0.08855734 0.08265032
+    ##  [7] 0.08623387 0.08743733 0.06593819 0.07428010
+
+Plot the graph:
 
 ``` r
-fviz_dend(hr2.hc,
-          k = 4,
-          rect = T,
-          cex = 0.5)
-```
-
-    ## Warning: `guides(<scale> = FALSE)` is deprecated. Please use `guides(<scale> =
-    ## "none")` instead.
-
-![](hr_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
-
-### 7.1 PAM
-
-**Optimal K**
-
-``` r
-avg_silhouette <- NA
-  for(i in 2:10){
-    gower.pam <- pam(gowerdis, diss = T, k = i)
-    avg_silhouette[i] <- gower.pam$silinfo$avg.width
-  }
-
-avg_silhouette
-```
-
-    ##  [1]         NA 0.20602567 0.11305698 0.08450268 0.08597324 0.08184562
-    ##  [7] 0.08519360 0.09101405 0.09515412 0.07987419
-
-``` r
-plot(avg_silhouette,
-     xlab = "Total number of clusters",
-     ylab = "Average Silhouette",
+plot(sil_df,
+     xlab = "Number of Cluster (K)",
+     ylab = "Silhouette Width",
      bty = "n")
-
-lines(avg_silhouette)
+lines(sil_df)
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-33-1.png)<!-- --> The data is
-suggested to be divided into 2 clusters, the 2 clusters are well
-distinguishable from each other.
+![](hr_files/figure-gfm/unnamed-chunk-34-1.png)<!-- --> **PAM for K =
+2**
 
-Applying the suggested k to perform the PAM again to cluster the dataset
-into 2 clusters.
+Silhouette plot suggests that the dataset is best to be clustered into 2
+groups. Therefore, I will create a PAM to cluster the dataset into 2
+clusters (2 K).
 
 ``` r
-gower.pam <- pam(gowerdis, diss = T, k = 2)
+res.pam <-  pam(gower.dis, diss = T, k = 2)
 ```
 
-The dataset now has following two groups of data for cluster 1 and
-cluster 2.
+All observations in the dataset have been clustered into 2 clusters and
+each cluster has following size.
 
 ``` r
-table(gower.pam$clustering)
+table(res.pam$clustering)
 ```
 
     ## 
     ##   1   2 
-    ## 218  93
+    ## 216  95
 
-Adding the clustering data into the original dataset,
+**Add Cluster groups to Data**
+
+In this step, I add the clustering result into the dataset for further
+analysis.
 
 ``` r
-# Add cluster grouping to data frame and convert this column into factor
-
-hr2_pam <- cbind(hr2, cluster = gower.pam$clustering) %>% 
-  mutate(cluster = as.factor(cluster))
+hr2_pam <- cbind(hr2, cluster = res.pam$clustering) %>% 
+  mutate(cluster = as.factor(cluster)) %>% 
+  relocate(cluster, .before = MarriedID)
 ```
+
+**Analyse the result of PAM clustering**
+
+Following is the summary of variables from cluster 1:
+
+``` r
+cluster1_stat <- hr2_pam %>% 
+  filter(cluster == "1") 
+  
+summary(cluster1_stat[, -1]) 
+```
+
+    ##  MarriedID FromDiversityJobFairID     Salary       Termd  
+    ##  0:145     0:202                  Min.   : 45046   0:201  
+    ##  1: 71     1: 14                  1st Qu.: 56328   1: 15  
+    ##                                   Median : 63080          
+    ##                                   Mean   : 70584          
+    ##                                   3rd Qu.: 72728          
+    ##                                   Max.   :250000          
+    ##                                                           
+    ##                      Position      State          Age         Sex    
+    ##  Production Technician I :89   MA     :186   Min.   : 23.00   F:120  
+    ##  Production Technician II:36   CT     :  6   1st Qu.: 25.00   M: 96  
+    ##  Area Sales Manager      :22   TX     :  2   Median : 37.00          
+    ##  Production Manager      :10   VT     :  2   Mean   : 44.21          
+    ##  IT Support              : 8   AL     :  1   3rd Qu.: 49.25          
+    ##  Software Engineer       : 7   AZ     :  1   Max.   :103.00          
+    ##  (Other)                 :44   (Other): 18                           
+    ##     MaritalDesc       CitizenDesc  HispanicLatino
+    ##  Divorced : 17   Non-Citizen:  8   No :197       
+    ##  Married  : 71   US Citizen :208   Yes: 19       
+    ##  Separated: 11                                   
+    ##  Single   :113                                   
+    ##  Widowed  :  4                                   
+    ##                                                  
+    ##                                                  
+    ##                              RaceDesc    years_worked   
+    ##  American Indian or Alaska Native:  3   Min.   : 0.100  
+    ##  Asian                           : 22   1st Qu.: 7.400  
+    ##  Black or African American       : 54   Median : 8.400  
+    ##  Hispanic                        :  1   Mean   : 8.406  
+    ##  Two or more races               :  8   3rd Qu.:10.000  
+    ##  White                           :128   Max.   :16.400  
+    ##                                                         
+    ##              TermReason                EmploymentStatus
+    ##  N/A-StillEmployed:201   Active                :201    
+    ##  unhappy          :  3   Terminated for Cause  :  4    
+    ##  performance      :  2   Voluntarily Terminated: 11    
+    ##  retiring         :  2                                 
+    ##  return to school :  2                                 
+    ##  Another position :  1                                 
+    ##  (Other)          :  5                                 
+    ##                 Department          ManagerName           RecruitmentSource
+    ##  Admin Offices       :  6   Brannon Miller: 18   Indeed            :71     
+    ##  Executive Office    :  1   Kelley Spirea : 17   LinkedIn          :63     
+    ##  IT/IS               : 40   David Stanley : 16   Employee Referral :25     
+    ##  Production          :136   Ketsia Liebig : 16   Google Search     :18     
+    ##  Sales               : 25   Elijiah Gray  : 14   Diversity Job Fair:14     
+    ##  Software Engineering:  8   Janet King    : 14   CareerBuilder     :13     
+    ##                             (Other)       :121   (Other)           :12     
+    ##           PerformanceScore EngagementSurvey EmpSatisfaction
+    ##  Exceeds          : 29     Min.   :1.120    1: 2           
+    ##  Fully Meets      :168     1st Qu.:3.723    2: 7           
+    ##  Needs Improvement:  9     Median :4.300    3:84           
+    ##  PIP              : 10     Mean   :4.106    4:51           
+    ##                            3rd Qu.:4.622    5:72           
+    ##                            Max.   :5.000                   
+    ##                                                            
+    ##  SpecialProjectsCount DaysLateLast30      Absences    
+    ##  Min.   :0.000        Min.   :0.0000   Min.   : 1.00  
+    ##  1st Qu.:0.000        1st Qu.:0.0000   1st Qu.: 4.00  
+    ##  Median :0.000        Median :0.0000   Median :10.00  
+    ##  Mean   :1.403        Mean   :0.3565   Mean   :10.01  
+    ##  3rd Qu.:1.250        3rd Qu.:0.0000   3rd Qu.:15.00  
+    ##  Max.   :8.000        Max.   :6.0000   Max.   :20.00  
+    ## 
+
+Following is the summary of variables from cluster 2:
+
+``` r
+cluster2_stat <- hr2_pam %>% 
+  filter(cluster == "2") 
+  
+summary(cluster2_stat[, -1])
+```
+
+    ##  MarriedID FromDiversityJobFairID     Salary       Termd 
+    ##  0:42      0:80                   Min.   : 45115   0: 6  
+    ##  1:53      1:15                   1st Qu.: 53785   1:89  
+    ##                                   Median : 60340         
+    ##                                   Mean   : 65467         
+    ##                                   3rd Qu.: 69593         
+    ##                                   Max.   :148999         
+    ##                                                          
+    ##                      Position      State         Age         Sex   
+    ##  Production Technician I :48   MA     :90   Min.   : 23.00   F:56  
+    ##  Production Technician II:21   OH     : 1   1st Qu.: 25.00   M:39  
+    ##  Area Sales Manager      : 5   PA     : 1   Median : 36.00         
+    ##  Production Manager      : 4   TN     : 1   Mean   : 43.23         
+    ##  Software Engineer       : 3   TX     : 1   3rd Qu.: 48.00         
+    ##  Administrative Assistant: 2   VA     : 1   Max.   :103.00         
+    ##  (Other)                 :12   (Other): 0                          
+    ##     MaritalDesc      CitizenDesc HispanicLatino
+    ##  Divorced :13   Non-Citizen: 8   No :86        
+    ##  Married  :53   US Citizen :87   Yes: 9        
+    ##  Separated: 1                                  
+    ##  Single   :24                                  
+    ##  Widowed  : 4                                  
+    ##                                                
+    ##                                                
+    ##                              RaceDesc   years_worked               TermReason
+    ##  American Indian or Alaska Native: 0   Min.   : 0.100   Another position:19  
+    ##  Asian                           : 7   1st Qu.: 1.900   unhappy         :11  
+    ##  Black or African American       :26   Median : 3.800   more money      :10  
+    ##  Hispanic                        : 0   Mean   : 3.766   career change   : 9  
+    ##  Two or more races               : 3   3rd Qu.: 5.150   attendance      : 7  
+    ##  White                           :59   Max.   :10.500   hours           : 7  
+    ##                                                         (Other)         :32  
+    ##                EmploymentStatus                Department         ManagerName
+    ##  Active                : 6      Admin Offices       : 3   Amy Dunn      :13  
+    ##  Terminated for Cause  :12      Executive Office    : 0   Webster Butler:12  
+    ##  Voluntarily Terminated:77      IT/IS               :10   Michael Albert: 9  
+    ##                                 Production          :73   Elijiah Gray  : 8  
+    ##                                 Sales               : 6   Kissy Sullivan: 8  
+    ##                                 Software Engineering: 3   Simon Roup    : 6  
+    ##                                                           (Other)       :39  
+    ##           RecruitmentSource          PerformanceScore EngagementSurvey
+    ##  Google Search     :31      Exceeds          : 8      Min.   :2.000   
+    ##  Indeed            :16      Fully Meets      :75      1st Qu.:3.600   
+    ##  Diversity Job Fair:15      Needs Improvement: 9      Median :4.200   
+    ##  LinkedIn          :13      PIP              : 3      Mean   :4.118   
+    ##  CareerBuilder     :10                                3rd Qu.:4.770   
+    ##  Employee Referral : 6                                Max.   :5.000   
+    ##  (Other)           : 4                                                
+    ##  EmpSatisfaction SpecialProjectsCount DaysLateLast30      Absences    
+    ##  1: 0            Min.   :0.0          Min.   :0.0000   Min.   : 1.00  
+    ##  2: 2            1st Qu.:0.0          1st Qu.:0.0000   1st Qu.: 6.00  
+    ##  3:24            Median :0.0          Median :0.0000   Median :11.00  
+    ##  4:43            Mean   :0.8          Mean   :0.5474   Mean   :10.75  
+    ##  5:26            3rd Qu.:0.0          3rd Qu.:0.0000   3rd Qu.:16.00  
+    ##                  Max.   :7.0          Max.   :6.0000   Max.   :20.00  
+    ## 
+
+Following is the two medoids used to form the two clusters, and which
+might be helpful for understanding and interpreting result.
+
+``` r
+hr2[res.pam$medoids, ]
+```
+
+    ##                MarriedID FromDiversityJobFairID Salary Termd
+    ## Ivey  Rose             0                      0  51908     0
+    ## Panjwani  Nina         1                      0  63515     1
+    ##                               Position State Age Sex MaritalDesc CitizenDesc
+    ## Ivey  Rose     Production Technician I    MA  31   F      Single  US Citizen
+    ## Panjwani  Nina Production Technician I    MA  25   F     Married  US Citizen
+    ##                HispanicLatino RaceDesc years_worked        TermReason
+    ## Ivey  Rose                 No    White          8.8 N/A-StillEmployed
+    ## Panjwani  Nina             No    White          2.9  Another position
+    ##                      EmploymentStatus Department    ManagerName
+    ## Ivey  Rose                     Active Production Brannon Miller
+    ## Panjwani  Nina Voluntarily Terminated Production   Elijiah Gray
+    ##                RecruitmentSource PerformanceScore EngagementSurvey
+    ## Ivey  Rose                Indeed      Fully Meets             3.99
+    ## Panjwani  Nina     Google Search      Fully Meets             3.89
+    ##                EmpSatisfaction SpecialProjectsCount DaysLateLast30 Absences
+    ## Ivey  Rose                   3                    0              0       14
+    ## Panjwani  Nina               4                    0              0        7
+
+**Visualisation with t-SNE**
+
+``` r
+# Make a tsne object with gower dis of the dataset
+
+tsne_object <- Rtsne(gower.dis, is_distance = T)
+
+# tsne df
+
+tsne_df <- tsne_object$Y %>% 
+  data.frame() %>% 
+  rename("X" = "X1",
+         "Y" = "X2") %>%     # Extract XY of tsne object
+  mutate(cluster = res.pam$clustering,
+         cluster = as.factor(cluster))
+  
+# Plot
+
+ggplot(tsne_df, aes(x = X, y = Y, color = cluster)) +
+  geom_point(alpha = 0.5, size = 3)  +
+  theme_classic() +
+  scale_color_brewer(palette = "Set1")
+```
+
+![](hr_files/figure-gfm/unnamed-chunk-41-1.png)<!-- --> The plot shows
+two separated clusters that PAM was able to detect. These two clusters
+are not perfect with several contamination, but these are minority.
 
 ## 8 PRINCIPAL COMPONENT
 
@@ -1670,21 +1981,19 @@ fviz_famd_ind(kar.famd,
               repel = T)
 ```
 
-    ## Warning: ggrepel: 99 unlabeled data points (too many overlaps). Consider
+    ## Warning: ggrepel: 98 unlabeled data points (too many overlaps). Consider
     ## increasing max.overlaps
 
-    ## Warning: ggrepel: 287 unlabeled data points (too many overlaps). Consider
+    ## Warning: ggrepel: 288 unlabeled data points (too many overlaps). Consider
     ## increasing max.overlaps
 
-![](hr_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
-
-``` r
-fviz_famd_var(kar.famd)
-```
-
-![](hr_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
+![](hr_files/figure-gfm/unnamed-chunk-45-1.png)<!-- -->
 
 ## REFERENCE
+
+Clustering and dimensionality reduction techniques on the Berlin Airbnb
+data and the problem of mixed data (n.d.),viewed 15 May 2022
+<https://rstudio-pubs-static.s3.amazonaws.com/579984_6b9efbf84ee24f00985c29e24265d2ba.html>
 
 KASSAMBARA A 2017, *Practical Guide To Principal Component Methods in
 R*, Edition 1, sthda.com
@@ -1695,6 +2004,6 @@ Rich Huebner 2020, *Human Resources Data Set*, viewed 2 May 2022,
 Rich Huebner 2021, *Codebook - HR Dataset v14*, viewed 3 May 2022,
 <https://rpubs.com/rhuebner/hrd_cb_v14>
 
-Clustering and dimensionality reduction techniques on the Berlin Airbnb
-data and the problem of mixed data (n.d.),viewed 15 May 2022
-<https://rstudio-pubs-static.s3.amazonaws.com/579984_6b9efbf84ee24f00985c29e24265d2ba.html>
+Wicked Good Data - r 2016,
+*<https://www.r-bloggers.com/2016/06/clustering-mixed-data-types-in-r/>*,
+viewed 8 May 2022

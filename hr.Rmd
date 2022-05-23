@@ -27,6 +27,7 @@ library(factoextra)
 library(FactoMineR)
 library(cluster)    # For daisy function
 library(cowplot)
+library(Rtsne)
 
 ```
 
@@ -437,98 +438,186 @@ ggplot(df6.3, aes(y = label, x = count, fill = my_values)) +
 
 ```
 
+### 6.4 Distribution study of continuous variable
+
+A number of continuous variables are non-normality and contains outliers. 
+
+```{r}
+# set df
+
+df6.4 <- hr2 %>% select_if(is.numeric)
+df6.4 <- df6.4 %>% 
+  pivot_longer(c(1:7), names_to = "myvar", values_to = "myval") %>% 
+  mutate(myvar = as.factor(myvar))
+
+# plot
+
+ggplot(df6.4, aes(y = myvar, x = myval)) +
+  geom_boxplot() +
+  facet_wrap(~myvar, scales = "free")
+
+```
+
+
+After completing basic simple visualisation, we will now dive into more advanced data mining technique. 
 
 ## 7 CLUSTERING
 
+Clustering is a series of different techniques to find distinct groups of data within a dataset. To be specific in terms of "observation" and "variable", clustering is trying to group similar observations together, and each group should be distinct from each other. 
 
+### 7.1 Distance metrics
 
+The data is a mixed dataset and a special type of distance metrics to measure distance between observation will be used which is called Gower distance. For continuous variables inside the dataset, the Gower function will use manhattan distance, whereas for categorical variables, Gower function will use dice distance. Gower will then combine all these distance together and form a single distance value and which can be known as Gower distance. 
 
+To compute gower distance between observations,
+
+```{r}
+glimpse(hr2)
+
+```
 
 
 ```{r}
-gowerdis <- daisy(hr2, metric = "gower")
-summary(gowerdis)
-class(gowerdis)
+gower.dis <- daisy(hr2, 
+                   metric = "gower",
+                   type = list(logratio = c("Age", "DaysLateLast30", "Salary", "SpecialProjectsCount"))) # log transformation to which column?
+
+summary(gower.dis)
 
 ```
-### 7.1 Hierarchical Clustering
+The Gower distance metric has now been computed for 311 rows of observations for this dataset with mixed data-types. 
 
-```{r, fig.height=7, fig.width=12}
-hr2.hc <- hclust(gowerdis, method = "complete")
-
-fviz_dend(hr2.hc, cex = 0.5)
-
-```
-
-
+Following show the most similar and different pair in the dataset. 
 
 ```{r}
-group <- cutree(hr2.hc, k = 2)
-table(group)
+gower_mat <- as.matrix(gower.dis)
+
+hr2[which(gower_mat == min(gower_mat[gower_mat != min(gower_mat)]),   # min for most similar
+          arr.ind = T)[1, ], ]
 
 ```
-
-```{r, fig.width=12, fig.height=7}
-fviz_dend(hr2.hc,
-          k = 4,
-          rect = T,
-          cex = 0.5)
-
-```
-
-
-
-
-
-### 7.1 PAM
-
-**Optimal K**
 
 ```{r}
-avg_silhouette <- NA
-  for(i in 2:10){
-    gower.pam <- pam(gowerdis, diss = T, k = i)
-    avg_silhouette[i] <- gower.pam$silinfo$avg.width
-  }
-
-avg_silhouette
+hr2[which(gower_mat == max(gower_mat[gower_mat != max(gower_mat)]),   # max for most different
+          arr.ind = T)[1, ], ]
 
 ```
+
+### 7.1 Gower with PAM
+
+K-means clustering method cannot be applied on the daisy function, and therefore the clustering algorithms typically used for Gower distance is Partitioning around Medoid (PAM) and Hierarchical clustering. 
+
+**Determining Best K**
+
+This section will perform PAM, however, the optimal will need to be determined. I will use silhouette width for this task, which is one of the internal cluster validation to see the quality of cluster. It has value ranges from -1 to 1, the higher the silhouette metric, the better the clustering. In fact, the overall silhouette metric of a k (number of clustering) is computed from all silhouette metric of individual observation within relevant cluster.  
+
+Applying for-loop for all silhouette width of each K:
+
 ```{r}
-plot(avg_silhouette,
-     xlab = "Total number of clusters",
-     ylab = "Average Silhouette",
+
+sil_df <- c(NA)
+
+for (i in 2:10) {
+  res.pam <- pam(gower.dis, diss = T, k = i)
+  sil_df[i] <- res.pam$silinfo$avg.width
+}
+
+sil_df
+
+```
+Plot the graph:
+
+```{R}
+
+plot(sil_df,
+     xlab = "Number of Cluster (K)",
+     ylab = "Silhouette Width",
      bty = "n")
-
-lines(avg_silhouette)
-
+lines(sil_df)
 
 ```
-The data is suggested to be divided into 2 clusters, the 2 clusters are well distinguishable from each other. 
+**PAM for K = 2**
 
-Applying the suggested k to perform the PAM again to cluster the dataset into 2 clusters. 
+Silhouette plot suggests that the dataset is best to be clustered into 2 groups. Therefore, I will create a PAM to cluster the dataset into 2 clusters (2 K).
 
 ```{r}
-gower.pam <- pam(gowerdis, diss = T, k = 2)
+res.pam <-  pam(gower.dis, diss = T, k = 2)
 
 ```
 
-The dataset now has following two groups of data for cluster 1 and cluster 2. 
+All observations in the dataset have been clustered into 2 clusters and each cluster has following size.  
 
 ```{r}
-table(gower.pam$clustering)
+table(res.pam$clustering)
 
 ```
-Adding the clustering data into the original dataset,
+**Add Cluster groups to Data**
+
+In this step, I add the clustering result into the dataset for further analysis. 
 
 ```{r}
-# Add cluster grouping to data frame and convert this column into factor
 
-hr2_pam <- cbind(hr2, cluster = gower.pam$clustering) %>% 
-  mutate(cluster = as.factor(cluster))
+hr2_pam <- cbind(hr2, cluster = res.pam$clustering) %>% 
+  mutate(cluster = as.factor(cluster)) %>% 
+  relocate(cluster, .before = MarriedID)
+
+```
+
+**Analyse the result of PAM clustering**
+
+Following is the summary of variables from cluster 1:
+
+```{r}
+cluster1_stat <- hr2_pam %>% 
+  filter(cluster == "1") 
+  
+summary(cluster1_stat[, -1]) 
+
+```
+Following is the summary of variables from cluster 2:
+
+```{r}
+cluster2_stat <- hr2_pam %>% 
+  filter(cluster == "2") 
+  
+summary(cluster2_stat[, -1])
+
+```
+
+Following is the two medoids used to form the two clusters, and which might be helpful for understanding and interpreting result. 
+
+```{r}
+hr2[res.pam$medoids, ]
+
+```
+
+**Visualisation with t-SNE**
+
+```{r}
+# Make a tsne object with gower dis of the dataset
+
+tsne_object <- Rtsne(gower.dis, is_distance = T)
+
+# tsne df
+
+tsne_df <- tsne_object$Y %>% 
+  data.frame() %>% 
+  rename("X" = "X1",
+         "Y" = "X2") %>%     # Extract XY of tsne object
+  mutate(cluster = res.pam$clustering,
+         cluster = as.factor(cluster))
+  
+# Plot
+
+ggplot(tsne_df, aes(x = X, y = Y, color = cluster)) +
+  geom_point(alpha = 0.5, size = 3)  +
+  theme_classic() +
+  scale_color_brewer(palette = "Set1")
 
 
 ```
+The plot shows two separated clusters that PAM was able to detect. These two clusters are not perfect with several contamination, but these are minority.   
+
 
 
 
@@ -563,9 +652,7 @@ fviz_famd_ind(kar.famd,
 
 ```
 
-```{r}
-fviz_famd_var(kar.famd)
-```
+
 
 
 
@@ -575,10 +662,12 @@ fviz_famd_var(kar.famd)
 
 ## REFERENCE
 
+Clustering and dimensionality reduction techniques on the Berlin Airbnb data and the problem of mixed data (n.d.),viewed 15 May 2022 https://rstudio-pubs-static.s3.amazonaws.com/579984_6b9efbf84ee24f00985c29e24265d2ba.html
+
 KASSAMBARA A 2017, *Practical Guide To Principal Component Methods in R*, Edition 1, sthda.com
 
 Rich Huebner 2020, *Human Resources Data Set*, viewed 2 May 2022, https://www.kaggle.com/datasets/rhuebner/human-resources-data-set?resource=download 
 
 Rich Huebner 2021, *Codebook - HR Dataset v14*, viewed 3 May 2022, https://rpubs.com/rhuebner/hrd_cb_v14
 
-Clustering and dimensionality reduction techniques on the Berlin Airbnb data and the problem of mixed data (n.d.),viewed 15 May 2022 https://rstudio-pubs-static.s3.amazonaws.com/579984_6b9efbf84ee24f00985c29e24265d2ba.html
+Wicked Good Data - r 2016, *https://www.r-bloggers.com/2016/06/clustering-mixed-data-types-in-r/*, viewed 8 May 2022
