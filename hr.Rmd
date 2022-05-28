@@ -97,7 +97,7 @@ sample_n(hr, 10)
 The first column is a column recording employee names. I have made this column the name of each rows (or known as observation). It is the standard format required for PC methods.  
 
 ## 5 DATA CLEANING
-
+ 
 The data may seem perfectly to go however numerous important cleaning and manipulation tasks have been identified and will be perfectly completed in this section. 
 
 ```{r}
@@ -105,8 +105,6 @@ hr <- hr %>%
   column_to_rownames(var = "Employee_Name")
 
 ```
-
-
 
 
 ### 5.1 Variables removals
@@ -133,6 +131,14 @@ hr2 <- hr %>%
 glimpse(hr2)
 
 ```
+
+
+
+```{r}
+summary(hr2)
+```
+
+
 ### 5.2 New Variable: Age
 
 At the year of writing this project is 2022, and therefore the calculation of age will be 2022 minus DOB (date of birth) in the dataset. The DOB will be replaced with "Age".
@@ -502,6 +508,16 @@ hr2[which(gower_mat == max(gower_mat[gower_mat != max(gower_mat)]),   # max for 
           arr.ind = T)[1, ], ]
 
 ```
+
+
+### 7.2 VAT
+
+The Gower metric is a distance object
+
+```{r}
+fviz_dist(gower.dis)
+```
+
 
 ### 7.1 Gower with PAM
 
