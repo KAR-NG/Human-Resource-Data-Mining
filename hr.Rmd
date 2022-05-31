@@ -10,6 +10,11 @@ always_allow_html: yes
 ---
 
 
+***
+
+
+***
+
 ## 1 SUMMARY
 
 
@@ -28,6 +33,10 @@ library(FactoMineR)
 library(cluster)    # For daisy function
 library(cowplot)
 library(Rtsne)
+library(gplots)
+library(ggrepel)
+library(caret)
+library(ggpubr)
 
 ```
 
@@ -37,7 +46,7 @@ library(Rtsne)
 
 This project analyses a set of human resource data by applying one of the core machine learning technique, "Principal Components (PC) methods", which belong to the "unsupervised" branch of machine learning domain. 
 
-There are 5 types of principal components methods:
+There are 5 main types of principal components methods:
 
 * Principal Component Analysis (PCA)    
 * Correspondence Analysis (CA)    
@@ -45,7 +54,7 @@ There are 5 types of principal components methods:
 * Factor Analysis of Mixed Data (FAMD)  
 * Multiple Factor Analysis (MFA)  
 
-These PC methods are designed for different type of datasets, I would not explain why and how are these methods different from each other here and for which type of datasets but I will apply the most appropriate one for the dataset used in this project.
+These PC methods are designed for different type of datasets, I will apply the most appropriate one for the dataset used in this project, and which will be decided in later section.
 
 Principal component methods are typically used for multivariate analysis (MVA) when we are analysing datasets that have many variables. PC methods will quickly help us identifying the most important variables that contribute the most in explaining the variations in the data sets. 
 
@@ -54,13 +63,11 @@ During computation, PC methods will extract all the variations in the multivaria
 
 ## 4 DATA PREPARATION
 
-A public dataset called "Human Resources Data Set" by DR.RICH on Kaggle.com has been downloaded for analysis. *Kaggle.com* is a popular website for data science community to share datasets, codes and knowledge. 
-
-This dataset 
+A public dataset called "Human Resources Data Set" by DR.RICH on Kaggle.com has been downloaded for this project. *Kaggle.com* is a popular website for data science community to share datasets, codes and knowledge. 
 
 ### 4.1 Data import
 
-Following code upload the dataset into R.
+Importing the dataset into R:
 
 ```{r}
 hr <- read.csv("hr_dataset.csv", 
@@ -72,16 +79,98 @@ hr <- read.csv("hr_dataset.csv",
 ```
 
 
-
 ### 4.2 Data description
 
-Following is the data dictionary/description of this dataset, downloaded from this link: [Rpubs](https://rpubs.com/rhuebner/hrd_cb_v14), created by the author, Dr. Rich Huebner.
+Following is the data dictionary/description of this dataset, adapted from this link: [Rpubs](https://rpubs.com/rhuebner/hrd_cb_v14), created by the author, Dr. Rich Huebner.
 
-![Data description](https://raw.githubusercontent.com/KAR-NG/hr/main/pic1_data_description.png)
+
+```{r}
+Variables <- c("Employee Name", 
+               "EmpID",
+               "MarriedID",
+               "MaritalStatusID",
+               "EmpStatusID",
+               "DeptID",
+               "PerfScoreID",
+               "FromDiversityJobFairID",
+               "Salary",
+               "Termd",
+               "PositionID",
+               "Position",
+               "State",
+               "Zip",
+               "DOB",
+               "Sex",
+               "MaritalDesc",
+               "CitizenDesc",
+               "HispanicLatino",
+               "RaceDesc",
+               "DateofHire",
+               "DateofTermination",
+               "TermReason",
+               "EmploymentStatus",
+               "Department",
+               "ManagerName",
+               "ManagerID",
+               "RecruitmentSource",
+               "PerformanceScore",
+               "EngagementSurvey",
+               "EmpSatisfaction",
+               "SpecialProjectsCount",
+               "LastPerformanceReviewDate",
+               "DaysLateLast30",
+               "Absences"
+               )
+
+
+Description <- c("Employee’s full name",
+                 "Employee ID is unique to each employee",
+                 "Is the person married (1 or 0 for yes or no)",
+                 "Marital status code that matches the text field MaritalDesc",
+                 "Employment status code that matches text field EmploymentStatus",
+                 "Department ID code that matches the department the employee works in",
+                 "Performance Score code that matches the employee’s most recent performance score",
+                 "Was the employee sourced from the Diversity job fair? 1 or 0 for yes or no",
+                 "The person’s yearly salary. $ U.S. Dollars",
+                 "Has this employee been terminated - 1 or 0",
+                 "An integer indicating the person’s position",
+                 "The text name/title of the position the person has",
+                 "The state that the person lives in",
+                 "The zip code for the employee",
+                 "Date of Birth for the employee",
+                 "Sex - M or F",
+                 "The marital status of the person (divorced, single, widowed, separated, etc)",
+                 "Label for whether the person is a Citizen or Eligible NonCitizen",
+                 "Yes or No field for whether the employee is Hispanic/Latino",
+                 "Description/text of the race the person identifies with",
+                 "Date the person was hired",
+                 "Date the person was terminated, only populated if, in fact, Termd = 1",
+                 "A text reason / description for why the person was terminated",
+                 "A description/category of the person’s employment status. Anyone currently working full time = Active",
+                 "Name of the department that the person works in",
+                 "The name of the person’s immediate manager",
+                 "A unique identifier for each manager",
+                 "The name of the recruitment source where the employee was recruited from",
+                 "Performance Score text/category (Fully Meets, Partially Meets, PIP, Exceeds)",
+                 "Results from the last engagement survey, managed by our external partner",
+                 "A basic satisfaction score between 1 and 5, as reported on a recent employee satisfaction survey",
+                 "The number of special projects that the employee worked on during the last 6 months",
+                 "The most recent date of the person’s last performance review",
+                 "The number of times that the employee was late to work during the last 30 days",
+                 "The number of times the employee was absent from work"
+                 )
+  
+
+data.frame(Variables, Description) %>% 
+  kbl() %>% 
+  kable_styling(bootstrap_options = c("striped", "bordered"))
+
+```
+
 
 ### 4.3 Data exploration
 
-There are 311 rows and 35 columns in the dataset. Following show the variable "type" allocated by R to each of the column (also known as variables or features), along with several starting values of these variables.
+There are 311 rows and 35 columns in the dataset. Following show the variable type allocated by R to each of the column (also known as variables or features), along with several starting values of these variables.
 
 ```{r}
 glimpse(hr)
@@ -94,11 +183,7 @@ sample_n(hr, 10)
 
 ```
 
-The first column is a column recording employee names. I have made this column the name of each rows (or known as observation). It is the standard format required for PC methods.  
-
-## 5 DATA CLEANING
- 
-The data may seem perfectly to go however numerous important cleaning and manipulation tasks have been identified and will be perfectly completed in this section. 
+The first column is a column recording employee names. I have made this column the name of each rows (or known as observation). It is the standard format required for analysis using clustering or PC methods.  
 
 ```{r}
 hr <- hr %>% 
@@ -106,10 +191,14 @@ hr <- hr %>%
 
 ```
 
+## 5 DATA CLEANING
+ 
+The data may seem perfectly to go however numerous important cleaning and manipulation tasks have been identified and will be completed in this section. 
+
 
 ### 5.1 Variables removals
 
-I will be removing some irrelevant or repeated variables that may not help in our analysis to understand the hidden trends in the data. They are:
+I will be removing some irrelevant or duplicated variables that may not be helpful in our analysis. They are:
 
 * EmpID  
 * MaritalStatusID  
@@ -122,50 +211,43 @@ I will be removing some irrelevant or repeated variables that may not help in ou
 * ManagerID  
 * LastPerformanceReview_Date
 
-After removal of above features, the numbers of columns have been reduced from 35 to 25. 
+After removal of above features, the numbers of columns have been reduced from 35 to 22. 
 
 ```{r}
 hr2 <- hr %>%
-  dplyr::select(-EmpID, -MaritalStatusID, -GenderID, -EmpStatusID, -DeptID, -PerfScoreID, -PositionID, -Zip, -ManagerID, -LastPerformanceReview_Date)
+  dplyr::select(-EmpID, -MaritalStatusID, -GenderID, -EmpStatusID, -DeptID, -PerfScoreID, -PositionID, -Zip, -ManagerID, -LastPerformanceReview_Date, -MarriedID, -FromDiversityJobFairID)
   
 glimpse(hr2)
 
 ```
 
-
-
-```{r}
-summary(hr2)
-```
-
-
 ### 5.2 New Variable: Age
 
-At the year of writing this project is 2022, and therefore the calculation of age will be 2022 minus DOB (date of birth) in the dataset. The DOB will be replaced with "Age".
+At the year of writing this project is 2022, and therefore the calculation of age will be 2022 minus DOB (date of birth) plus 1 in the dataset. The DOB will be replaced with "Age".
 
 
 ```{r}
-hr2 <- hr2 %>%  
-  mutate(yearDOB = substr(DOB, start = 7, stop = 8),
+hr2 <- hr2 %>% 
+  mutate(yearDOB = str_sub(DOB, -2, -1),
          yearbirth = as.numeric(paste0(19, yearDOB)),
-         Age = 2022 - yearbirth) %>%   
+         Age = 2022 - yearbirth) %>% 
   relocate(Age, .after = State) %>% 
   dplyr::select(-DOB, -yearDOB, -yearbirth)
 
 ```
-
-
 Now, the variable "DOB" has been replaced by "Age", 7th variable, and following shows the age of all employees in the dataset. 
 
 ```{r}
 hr2$Age
+
 ```
+
 
 ### 5.3 New Variable: years_worked
 
 There are two variables in the date set: DateofHire and DateofTermination. 
 
-I will compute the days of each employee worked/works by using the date of termination (DateofTermination) minus date of hire (DateofHire), and for present employee I will use today's date (5-May-2022) minus the date of hire to obtain the total number of days worked. 
+I will compute the days of each employee worked/works by using the date of termination (DateofTermination) minus date of hire (DateofHire), and for present employees I will use today's date (5-May-2022) minus the date of hire to obtain the total number of days worked. 
 
 ```{r}
 
@@ -190,7 +272,7 @@ hr2$years_worked
 
 ### 5.4 Trim
 
-This section trim the unnecessary leading and trailing whitespaces of character variables in the dataset. 
+This section trim the unnecessary leading and trailing white spaces of character variables in the dataset. 
 
 ```{r}
 hr2 <- hr2 %>% 
@@ -204,7 +286,7 @@ hr2 <- hr2 %>%
 
 Some "numeric" and "textual" features will need to be converted into "factor" type because of their categorical nature. 
 
-* All textual features that formed by character "chr" in the dataset need conversion. Following shows all of these textual variables in the datasets.       
+* All textual features that formed by character "chr" in this dataset need conversion to factor. Following shows all of these textual variables in the datasets.       
 
 ```{r}
 str(hr2 %>% 
@@ -227,12 +309,9 @@ str(hr2 %>%
 
 ```
 Following codes complete the conversion task for these selected numerical features.  
-
 ```{r}
 hr2 <- hr2 %>% 
-  mutate(MarriedID = as.factor(MarriedID),
-         FromDiversityJobFairID = as.factor(FromDiversityJobFairID),
-         Termd = as.factor(Termd),
+  mutate(Termd = as.factor(Termd),
          EmpSatisfaction = as.factor(EmpSatisfaction))
 
 ```
@@ -273,6 +352,8 @@ The HispanicLatino has following 4 categories.
 ```{r}
 table(hr2$HispanicLatino)
 ```
+
+
 The "no" and "Yes" should be a mistake and have to be converted to "No" and "Yes". Following code complete the conversion. 
 
 ```{r}
@@ -302,33 +383,28 @@ From the above function, there is no any missing data detected by the column "n_
 Alternatively, I can count the number of missing value ("NA") in each column by following code. 
 
 ```{r}
-colSums(is.na(hr2))
+colSums(is.na(hr2)) %>% 
+  kbl(col.names = "Missing Value Count") %>%
+  kable_styling(bootstrap_options = c("striped", "bordered"), full_width = F)
 
 ```
 
-There is no any missing data detected.
+There is now no any missing data detected.
+
+```{r}
+glimpse(hr2)
+
+
+```
 
 
 ## 6 VISUALISATION
 
-This section will help to understand data distribution of each variable and more importantly, to detect outliers.
-
-There are different type of outliers, some outliers may arise from typos but some may be real outliers. For example, executive members may have significant higher salary than most of the employees. This section will find and deal with false outliers, which are those that may be resulted from human errors. 
-The true outliers would not be an issue in this project, because principal components methods will scale all numerical variables to make all variables comparable, and therefore this step, known as standardisation, will transform these true outliers. 
+This section will help to deliver a preliminary understanding of the data distribution of each variable.
 
 ### 6.1 Numerical variables
 
-Insights from following summary:
-
-* All employees have their days of absences for worked evenly distributed between 0 to 20  
-* Most employees have age between 32 to 55  
-* Employees were very on time to work but except a few  
-* Employees were very engaging with majority of the scores fall between 4 to 5  
-* Typical salary range between 50k to 70k approximately  
-* There are a small number of employees had many special projects  
-* Most employees from this company worked between 5 to 10 years  
-
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, fig.width=12, fig.height=6}
 # df
 
 df6.1 <- hr2 %>% 
@@ -339,7 +415,7 @@ df6.1 <- hr2 %>%
 
 ggplot(df6.1, aes(x = my_values, fill = my_var)) +
   geom_histogram(color = "black") +
-  facet_wrap(~my_var, scales = "free") +
+  facet_wrap(~my_var, scales = "free", nrow = 2) +
   theme_bw() +
   theme(legend.position = "none",
         plot.title = element_text(face = "bold", hjust = 0.5),
@@ -352,17 +428,34 @@ ggplot(df6.1, aes(x = my_values, fill = my_var)) +
 
 ```
 
+Insights from following summary:
+
+* There is no an obvious over trend of absence but it can reach out to a maximum of 20 days from a minimum of 1. 
+
+```{r}
+summary(hr2$Absences)
+
+```
+* Most employees are age between 30 to 55.   
+* Most employees do not late to work.    
+* Employees were mostly engaging.  
+* Salary has a positive skewed with majority of them having salary at about $60 to 80k.  
+* Most employees do not have special project.    
+* For working years at the company, there is a normal distribution at around 8 years.  
+
+
 ### 6.2 factor variables 1
 
-There are 17 factor variables to look at, I have spread this examination into two parts. In this part "factor variables 1", I will look at the first 9 factor variables and examine the remaining in next section. 
 
-```{r, fig.height=9, fig.width=10, message=FALSE}
+
+There are 15 factor variables to look at, I have spitted this exploration into two parts. In this part "factor variables 1", I will look at the first 8 factor variables.
+
+```{r, fig.height=16, fig.width=14, message=FALSE}
 # df
 
 df6.2 <- hr2 %>% 
   dplyr::select(is.factor) %>% 
-  dplyr::select(-Position) %>% 
-  pivot_longer(1:8, names_to = "my_var", values_to = "my_values") %>% 
+  pivot_longer(1:15, names_to = "my_var", values_to = "my_values") %>% 
   group_by(my_var, my_values) %>% 
   summarise(count = n()) %>% 
   ungroup() %>% 
@@ -373,7 +466,7 @@ df6.2 <- hr2 %>%
 ggplot(df6.2, aes(y = label, x = count, fill = my_values)) +
   geom_bar(stat = "identity") +
   geom_text(aes(label = count), hjust = 1) +
-  facet_wrap(~my_var, scales = "free", ) +
+  facet_wrap(~my_var, scales = "free") +
   theme_bw() +
   theme(legend.position = "none",
         plot.title = element_text(face = "bold", hjust = 0.5),
@@ -387,66 +480,16 @@ ggplot(df6.2, aes(y = label, x = count, fill = my_values)) +
 
 ```
 
-Following shows the number of workers in each position in the organisation.
+Quick general insights:
 
-```{r, fig.width=8, fig.height=6}
-hr2 %>% 
-  dplyr::select(Position) %>% 
-  group_by(Position) %>% 
-  summarise(count = n()) %>% 
-  ggplot(aes(y = fct_reorder(Position, count), x = count)) +
-  geom_bar(stat = "identity") +
-  geom_text(aes(label = count), hjust = -0.3) +
-  theme_bw() +
-  theme(plot.title = element_text(face = "bold", hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5)) +
-  labs(title = "Visualisation of factor variables 1",
-       subtitle = "by Bar chart",
-       y = "Variables",
-       x = "Count") +
-  scale_x_continuous(lim = c(0, 140))
-  
+The dataset is dominated by employees from the Massachusetts (MA), US, from the production department. Most employees in the dataset have titles in "Production Technician I" and "Production Technician II". There are many other departments and positions as well but are not too many numbers compared to technician positions. Employees in the dataset has a mentor system that each of them have a direct manager to learn and work for. 
 
-```
+Most employees are white and black or African american. Female employees are slightly more than male employees. Most employees are satisfied at their job at a level of score 3 and above, and most of them fully meet the performance score. 
 
-
-### 6.3 factor variables 2
-
-This section examine the remaining 8 factor variables. 
-
-```{r, fig.height=9, fig.width=10, message=FALSE}
-# df
-
-df6.3 <- hr2 %>% 
-  dplyr::select(is.factor) %>% 
-  pivot_longer(10:17, names_to = "my_var", values_to = "my_values") %>% 
-  group_by(my_var, my_values) %>% 
-  summarise(count = n()) %>% 
-  ungroup() %>% 
-  mutate(label = reorder_within(x = my_values, by = count, within = my_var))
-
-# graph
-
-ggplot(df6.3, aes(y = label, x = count, fill = my_values)) +
-  geom_bar(stat = "identity") +
-  geom_text(aes(label = count), hjust = 1) +
-  facet_wrap(~my_var, scales = "free", ) +
-  theme_bw() +
-  theme(legend.position = "none",
-        plot.title = element_text(face = "bold", hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5)) +
-  scale_y_reordered() +
-  labs(title = "Visualisation of factor variables 1",
-       subtitle = "by Bar chart",
-       y = "Variables",
-       x = "Count")
-
-
-```
 
 ### 6.4 Distribution study of continuous variable
 
-A number of continuous variables are non-normality and contains outliers. 
+A number of continuous variables are non-normality and contain outliers. 
 
 ```{r}
 # set df
@@ -466,6 +509,7 @@ ggplot(df6.4, aes(y = myvar, x = myval)) +
 
 
 After completing basic simple visualisation, we will now dive into more advanced data mining technique. 
+
 
 ## 7 CLUSTERING
 
@@ -635,43 +679,713 @@ ggplot(tsne_df, aes(x = X, y = Y, color = cluster)) +
 The plot shows two separated clusters that PAM was able to detect. These two clusters are not perfect with several contamination, but these are minority.   
 
 
+## 8 BUSINESS TASKS
 
+There are 5 business tasks given by the kaggle website for this dataset to answer.
 
-## 8 PRINCIPAL COMPONENT
+### 8.1 Is there any relationship between who a person works for and their performance score?
 
-Following code saves the cleaned dataset into csv into the allocated file for storage purpose.
-
+**Correspondence Analysis (CA)** under the branch of Principal component methods from unsupervised machine learning will be applied to analyse the dataset to achieve the goal. 
+Selecting the variables "Manager name" and "performance score" from the dataset. 
+ 
 ```{r}
-write.csv(hr2_pam, "hr2_pam.csv")
+# df for related variables 
+df.task1 <- hr2 %>% 
+  select(ManagerName, PerformanceScore) %>% 
+  remove_rownames()
 ```
 
-Import the csv file back and a little transformation (convert character variable into factor.)
+Following are the managers in this dataset:
 
 ```{r}
+levels(df.task1$ManagerName)
+```
+Following are "performance score" categories.
 
-hr_data <- read.csv("hr2_pam.csv", row.names = 1)
-hr_data <- hr_data %>% 
-  mutate_if(is.character, as.factor) %>% 
-  mutate(cluster = as.factor(cluster)
-         ) 
+```{r}
+levels(df.task1$PerformanceScore)
+```
+"PIP" means  performance improvement plan, it is a tool to help employee that do train employee with performance deficiencies. 
+
+**1. Basic trends** 
+
+Following plot the balloon plot for the dataset:
+
+```{r, fig.height=8, fig.width=12, message=FALSE, warning=FALSE}
+
+# dataframe
+
+df.task1 <- df.task1 %>% 
+  group_by(ManagerName, PerformanceScore) %>% 
+  summarise(count = n()) %>% 
+  pivot_wider(names_from = PerformanceScore, values_from = count) %>% 
+  replace_na(list(Exceeds = 0,
+                  'Fully Meets' = 0,
+                  'Needs Improvement' = 0,
+                  'PIP' = 0)) %>% 
+  column_to_rownames(var = "ManagerName")
+
+# Contingency table format for Ballon plot:
+
+con.table <- as.table(as.matrix(df.task1)) 
+
+
+# Ballon plot
+
+balloonplot(t(con.table),
+            dotsize = 6,
+            dotcolor = "green",
+            show.margins = T,
+            main = "",
+            ylab = "",
+            xlab = "")
 
 ```
 
+Basic trends:
+
+* Brannon Miller has the most employees that worked for him and exceeds performance requirement (top rant), but in the mean time, he has also the most employees that worked for him (4 persons) falling into PIP category.
+
+* Most employees are in the group of fully met. David Stanley, Elijiah Gray, Kelley Spirea, Ketsia Liebig, Kissy Sullivan are the top managers, they have the most subordinates who worked for them fall into this category, the numbers are 19, 18, 18, 18, and 18. Wbster Bultler is the 6th manager, he has 17 employees who worked for him fall into this category. 
+
+**2. Data mining with Correspondence Analysis**
+
+Following initial the CA algorithm to find trend in the data. 
+
 ```{r}
-kar.famd <- FAMD(hr_data, graph = F)
+# Algorithm
+
+res.ca <- CA(df.task1, graph = F)
+
+```
+
+Result shows that Chi-square test that has been calculated with a p-value of 0.249, and which fail the reject the null hypothesis and conclude that the association between two variables "Manager" and "Performance" score is statistically insignificant. 
+
+```{r}
+res.ca
+
+```
+Although there is no statistical evidence of "overall" correlation, however, there might be some correlations between individual categories for each variables. For example, a manager has high amount of subordinates who perform well.
+
+Scree plot, symmetric and asymmetric biplot are plotted to understand the trend inside the data. 
+
+```{r, fig.width=12, fig.height=15, warning=FALSE, warning=FALSE}
+
+g1 <- fviz_screeplot(res.ca, addlabels = T, ylim = c(0, 60))
+
+g2 <- fviz_ca_biplot(res.ca, 
+                     repel = T) +
+  labs(title = "Symmetric biplot")
+
+g3 <- fviz_ca_biplot(res.ca,
+               map = "rowprincipal", 
+               arrows = c(T,T),
+               repel = T) +
+  labs(title = "Asymmetric biplot (Optional)") +
+  theme_get()
+
+top <- plot_grid(g1, g2)
+
+
+plot_grid(top, g3, nrow = 2)
+
+```
+
+**Insights**
+
+* Scree plot is showing that the first two dimensions going to used to construct the biplot has very high capability in explaining the variation in the dataset. 
+
+* In symmetric biplot, only distance between rows, or distance between column points can really be interpreted. 
+  * David Stanley, Kissy Sullivan, Simon Roup, and Ketsia Liebig are the closest to the point *"Fully Meets"*. They may not necessarily be the managers that have the most subordinates falling into this group when compared to others, But when considering all the categories of performance score, their subordinates are most likely to be inside this group "Fully Meets".   
+  * Whereas, Debra Houlihan and Jennifer Zamora are the closest to *"Needs Improvement"*.  
+
+* For asymmetric biplot, it is an alternative plot to help (optional). If an angle between two arrows (rows and columns) is accute (< 90oC), then there is strong association between the corresponding row and column. For examples:
+  * Brannon Miller has strong association with *Exceeds* and *PIP*    
+  * Lynn Daneault has strong association with *Exceeds* and *PIP*  
+
+
+### 8.2 What is the overall diversity profile of the organization?
+
+Having a team of employees from a diverse background can help a company to gain a variety of different perspectives, creativity, innovations and better employee engagement among employees. It will also help building a better company reputation and an increment in profit (Lovelytics 2020). 
+
+According to Lovelytics 2020, defining diversity of a company is to quantify the amount of "male" employees that is "white" in the company as "Non-diverse" and the remaining employees are classified as "diverse". 
+
+I will use this rule for our dataset that as long as an employee has following criteria will be classified as non-diverse and vice versa:
+  * Has a "Male" sex,   
+  * "No" Hispanic or Latino,     
+  * is "White"   
+
+Set up the dataframe and plot the graph:
+
+```{r, message=FALSE, warning=FALSE, fig.height=10, fig.width=10}
+
+# Set up dataframe of this section
+
+df8.2 <- hr2 %>% 
+  dplyr::select(Sex, HispanicLatino, RaceDesc) %>% 
+  remove_rownames() %>% 
+  mutate(diversity = ifelse(Sex == "M" & HispanicLatino == "No" & RaceDesc == "White",
+                            "Non-Diverse",
+                            "Diverse"))
+
+# 1. Diversity 
+g1 <- df8.2 %>% 
+  dplyr::select(diversity) %>% group_by(diversity) %>% summarise(count = n()) %>% 
+  ungroup() %>% 
+  mutate(total = sum(count),
+         per = round(count/total * 100)) %>% 
+  ggplot(aes(x = "", y = per, fill = diversity)) +
+  geom_bar(stat = "identity", color = "black") +
+  coord_polar(theta = "y", start = 0, direction = -1) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  geom_text(aes(label = paste0(diversity, "\n", 
+                               per, "%", "\n",
+                               "(", count, ")")),
+            position = position_stack(vjust = 0.5)) +
+  scale_fill_brewer(palette = 4) + labs(title = "Overall Diversity")
+
+# 2. Sex 
+
+g2 <- df8.2 %>% 
+  dplyr::select(Sex) %>% group_by(Sex) %>% summarise(count = n()) %>% 
+  ungroup() %>% 
+  mutate(total = sum(count),
+         per = round(count/total * 100)) %>% 
+  ggplot(aes(x = "", y = per, fill = Sex)) +
+  geom_bar(stat = "identity", color = "black") +
+  coord_polar(theta = "y", start = 0, direction = -1) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  geom_text(aes(label = paste0(Sex, "\n", 
+                               per, "%", "\n",
+                               "(", count, ")")),
+            position = position_stack(vjust = 0.5)) +
+  scale_fill_brewer(palette = 2) + labs(title = "Gender")
+
+# 3. Hispanic / Latino Origin
+
+g3 <- df8.2 %>% 
+  dplyr::select(HispanicLatino) %>% group_by(HispanicLatino) %>% summarise(count = n()) %>% 
+  ungroup() %>% 
+  mutate(total = sum(count),
+         per = round(count/total * 100)) %>% 
+  ggplot(aes(x = "", y = per, fill = HispanicLatino)) +
+  geom_bar(stat = "identity", color = "black") +
+  coord_polar(theta = "y", start = 0, direction = -1) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  geom_text(aes(label = paste0(HispanicLatino, "\n", 
+                               per, "%", "\n",
+                               "(", count, ")")),
+            position = position_stack(vjust = 0.5)) +
+  scale_fill_brewer(palette = 3) + labs(title = "Hispanic or Latino Origin")
+
+
+# 4. Hispanic / Latino Origin
+
+g4 <- df8.2 %>% 
+  dplyr::select(RaceDesc) %>% group_by(RaceDesc) %>% summarise(count = n()) %>% 
+  ungroup() %>% 
+  mutate(total = sum(count),
+         per = round(count/total * 100)) %>% 
+  ggplot(aes(x = "", y = per, fill = RaceDesc)) +
+  geom_bar(stat = "identity", color = "black") +
+  coord_polar(theta = "y", start = 0, direction = -1) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  geom_label_repel(aes(label = paste0(RaceDesc, "\n",
+                                      per, "%", "\n",
+                                      "(", count, ")")),
+            position = position_stack(vjust = 0.5)) +
+  scale_fill_brewer(palette = 4) + labs(title = "Race")
+
+
+top <- plot_grid(g1, g2, g3, nrow = 1)
+
+plot_grid(top, g4, 
+          nrow = 2, 
+          ncol = 1,
+          rel_heights = c(1, 2))
+
+```
+
+Insights:
+
+* The overall diversity is at a good level of 76%.    
+* Nearly half of the employees are female (43%) and make (57%).    
+* Only 9% of employees are either Hispanic or Latino.      
+* 60% of employees are "white" employees, followed by 26% of Black or African American, 9 % of Asian, and less than 5% of other races.       
+
+
+
+### 8.3 What are our best recruiting sources if we want to ensure a diverse organization?
+
+Two techniques will be used: (1) Visual Exploration (2) Data mining
+
+**1. Visual Exploration**
+
+The top 3 recruiting sources for diversity are:
+
+1. Diversity Job Fair, 100% of recruited employees were diverse (total of 29)    
+2. Google Search, 81.6% of recruited employees were diverse (40 out of 49)    
+3. LinkedIn, 80.3% of recruited employees were diverse (40 out of 49)   
+
+Following 3 sources had the worst diversity score compared among these available options in the dataset:
+
+1. "Other", only 50% of employees were diverse, well below the average    
+2. "Employee Referral", only 51.6% of employees were diverse, below the average    
+3. "Indeed", 72.4% were diverse and is close to the average of 73.3%   
+
+```{r, fig.height=8, fig.width=8}
+
+# set up dataframe
+
+df8.3 <- df8.2 %>% 
+  cbind(hr2$RecruitmentSource) %>% 
+  rename(RecruitmentSource = "hr2$RecruitmentSource") %>% 
+  mutate(diversity = as.factor(diversity))
+
+df8.3.2 <- df8.3 %>% 
+  select(RecruitmentSource, diversity) %>% 
+  group_by(RecruitmentSource, diversity) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  group_by(RecruitmentSource) %>% 
+  mutate(total = sum(count),
+         per = round(count/total*100,1)) %>% 
+  filter(diversity == "Diverse") %>% 
+  ungroup() %>% 
+  mutate(overall.mean = mean(per),
+         cutoff = case_when(per < 73.3425 ~ "Below Average",
+                            TRUE ~ "Above Average"),
+         cutoff = as.factor(cutoff)) 
+
+# plot
+
+ggplot(df8.3.2, aes(y = fct_reorder(RecruitmentSource, per), x = per, color = cutoff)) +
+  geom_point(stat = "identity", size = 14, color = "black", shape = 21, aes(fill = cutoff)) +
+  geom_segment(aes(x = 73.3375,
+                   y = RecruitmentSource,
+                   xend = per,
+                   yend = RecruitmentSource),
+                   size = 1) +
+  geom_text(aes(label = paste0(per, "%", "\n", "\n", "(", count, "/", total, ")"),
+                vjust = 0.85), size = 3, color = "black") +
+  theme_bw() +
+  geom_vline(xintercept = 73.3375, linetype = 2, alpha = 0.5) +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title = element_blank()) +
+  labs(title = "Diversity Ranking of Recruitment Sources",
+       subtitle = "Dotted Vertical Line: Average at 73.34%")
+
+```
+
+
+**2. Data Mining**
+
+Several features that take part in this data mining are gender, whether the has Hispani or Latino origin, Race, and recruitment source. Recruitment source will be used as supplementary variable which will be used to understand the data without actually affecting the multiple correspondence analysis (MCA) result. 
+
+
+```{r}
+# set up dataframe
+
+df8.3.3 <- df8.3 %>% select(-diversity)
+
+# Set MCA algorithm
+
+res.mca <- MCA(df8.3.3, graph = F, quali.sup = 4)
+
+# Scree plot
+
+fviz_screeplot(res.mca, addlabels = T)
+
+```
+
+There are many principal components (Dimensions) are able to used for this analysis because many of the dimensions in the graph explain low and roughly the same variance. This scree plot does not have an obvious bend as well as all dimensions have eigenvalue of higher than 1 (10%) in this case. Usually eigenvalue of higher than 1 is used as a cut-off point to decide which dimensions to used in the factor map (biplot below).
+
+Though the scree plot is not good enough and may contains many error but for exploration purposes, some trends are detectable. 
+
+```{r, fig.height=6, fig.width=6, warning=FALSE, message=FALSE}
+fviz_mca_biplot(res.mca, repel = T, palette = "jco")
+
+```
+This biplot does not explain much of the variation based on Dim1 and Dim2. However, some trends we might be able to extract. For examples, if we want to hire a certain group of race we might be able to find where is the best of source.  
+
+* "White" employees might be the easiest to find in recruitment sources such as "Employee Referral", "Linkedin", "Google search", and "Indeed".  
+
+*  "Black or African American" is most associated with the recruitment source "Diversity Job Fair".  
+
+* In Indeed, Google search and Linkedin are the sources that would most likely getting someone is not Hispanic or Latino origin.   
+
+
+### 8.4 Are there areas of the company where pay is not equitable?
+
+The goal of this question is to detect unequal pay among who does the same job. For example, certain group of employees from a position received different amount of pay compared to other majority. 
+
+Two parts in this analysis: (1) Visual exploration, (2) Regression
+
+**1. Visualiation**
+
+Following are selected variables that are relevant to achieve the goal of this section. 
+
+```{r}
+df8.4 <- hr2 %>% 
+  select(Salary, Position, Age, Sex, HispanicLatino, RaceDesc, years_worked, Department)
+
+colnames(df8.4)
+  
+```
+
+```{r, fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+
+# 1. Sex 
+g1 <- ggplot(df8.4, aes(x = Sex, y = Salary)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(alpha = 0.5) +
+  stat_summary(fun = "mean", shape = 4, geom = "point", size = 6, color = "blue") +
+  theme_bw() +
+  labs(title = "Gender", 
+       subtitle = "Roughly Equal Pay (Median & Mean) for Female and Male employee") +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+# 2. Age
+g2 <- ggplot(df8.4, aes(x = Age, y = Salary)) + 
+  geom_point(alpha = 0.5, size = 2) +
+  geom_smooth(method = "lm", se = F) +
+  stat_regline_equation(label.x = 60, label.y = 150000, size = 4) +
+  
+  stat_cor(label.x = 60, label.y = 140000, size = 3,
+           method = "pearson", aes(label = ..r.label..)) +
+  
+  stat_cor(label.x = 60, label.y = 130000, size = 3,
+           method = "pearson", aes(label = ..rr.label..)) +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "Age",
+       subtitle = "Low correlation (Pearson) between Salary and Age") 
+
+# 3. Hispanic/Latino
+g3 <- ggplot(df8.4, aes(x = HispanicLatino, y = Salary)) +
+  geom_boxplot(outlier.shape = NA) + 
+  geom_jitter(alpha = 0.5) +
+  stat_summary(fun = "mean", shape = 4, geom = "point", size = 6, color = "blue") +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "Hispanic / Latino Origin",
+       subtitle = "Fair Salary Distribution based on median and mean") 
+# 4. RaceDesc
+g4 <- ggplot(df8.4, aes(x = RaceDesc, y = Salary)) +
+  geom_boxplot(outlier.shape = NA) + 
+  geom_jitter(alpha = 0.5) +
+  stat_summary(fun = "mean", shape = 4, geom = "point", size = 6, color = "blue") +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90),
+        axis.title.x = element_blank()) +
+  labs(title = "Race",
+       subtitle = "Fair Salary Distribution based on overlapping of boxplots") 
+
+# 5. Years worked
+g5 <- ggplot(df8.4, aes(x = years_worked, y = Salary)) + 
+  geom_point(alpha = 0.5, size = 2) +
+  geom_smooth(method = "lm", se = F) +
+  theme_bw() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "Years Worked",
+       subtitle = "Almost zero correlation (Pearson) between years of working and Age") +
+  stat_regline_equation(label.x = 12, label.y = 150000, size = 4) +
+  
+  stat_cor(label.x = 12, label.y = 140000, size = 3,
+           method = "pearson", aes(label = ..r.label..)) +
+  
+  stat_cor(label.x = 12, label.y = 130000, size = 3,
+           method = "pearson", aes(label = ..rr.label..))
+
+# 6. Position + Department + Diversity
+df8.4.2 <- df8.4 %>%
+  mutate(diverse = df8.2$diversity,
+         diverse = as.factor(diverse))
+
+g6 <- ggplot(df8.4.2, aes(y = fct_reorder(Position, Salary), x = Salary, color = diverse)) +
+  geom_boxplot(aes(colour = diverse)) +
+  geom_jitter(position = position_jitterdodge(), alpha = 0.5) +
+  facet_wrap(~Department, scales = "free_y") +
+  theme_bw() +
+  theme(legend.position = "top",
+        axis.text.y = element_text(),
+        axis.title.y = element_blank(), 
+        plot.title = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "Salary vs Position vs Diversity Group",
+       subtitle = "No unequal pay detected")
+
+
+# Combine all plots into a dashboard
+topleft <- plot_grid(g1, g2, g3, g5, 
+                     nrow = 2,
+                     ncol = 2)
+
+top <- plot_grid(topleft, g4)
+
+plot_grid(top, g6,
+          nrow = 2, 
+          ncol = 1)
+
+```
+
+Insights gained: 
+
+* **Salary-Gender**: Roughly Equal Pay (Median & Mean) for Female and Male employees.    
+* **Salary-Age**: Low correlation (Pearson) between Salary and Age.    
+* **Salary-Hispanic/Latino**: Fair Salary Distribution based on median and mean.    
+* **Salary-Race**: Fair Salary Distribution based on overlapping of boxplots.    
+* **Salary-YearsWorked**: Almost zero correlation (Pearson) between years of working and Age.    
+* **Salary-Position-DiverseGroup**: No unequal pay detected
+
+
+**2. Regression**
+
+```{r}
+names(df8.4)
 ```
 
 ```{r}
-fviz_famd_ind(kar.famd, 
-              habillage = "cluster",
-              repel = T)
+
+model_lm <- lm(Salary ~., data = df8.4)
+summary(model_lm)
+
+```
+
+From the result above, the output shows a really high adjusted R2 at about 93.9% with an overall P-value of less than 0.05.  It indicating this model explains much of the variation in the dataset and at least one of the variable has significant relationship with salary. 
+
+From the aid of this multiple linear regression model, 
+
+* I can see that position has significant relationship with Salary with a P-value of less  than 0.05.
+
+* There is no significant relation between Salary with Age, Sex, Hispanic-Latino origin, Race, and years_worked.
+
+Therefore, I can conclude that the company is paying her employees quite equally. 
+
+
+
+### 8.5 we predict who is going to terminate and who isn't? What level of accuracy can we achieve on this?
+
+To answer this question, one must apply Classification Algorithm from machine learning domain. It is clealy identifiable that it is a binary classification problem, for example, either "Yes" or "No", or "1" or "0", and in this case, is whether "Yes" the employee is leaving or "No" the employee is not leaving. 
+
+There are a lot of relevant variables in the dataset, and the most relevant variable is "Termd", it tells us that has a particular employee in the dataset been terminated with a label of either 1 or 0 (Terminated or Not). It will be the core of the analysis, for both either visualisation or machine learning. 
+
+
+**1. Exploratory Visual**
+
+In this section, lets study the characteristics who have left the company using a visual way. 
+
+```{r}
+df8.5 <-  hr2 %>% 
+  dplyr::select(Salary, Termd, years_worked, TermReason, EmploymentStatus, PerformanceScore,
+                EngagementSurvey, EmpSatisfaction, SpecialProjectsCount, DaysLateLast30, Absences)
+
+```
+
+
+
+```{r, fig.width=6, fig.height=8, message=FALSE, warning=FALSE}
+# pie chart
+
+df.pie <- df8.5 %>% dplyr::select(Termd) %>% 
+  group_by(Termd) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  mutate(total = sum(count),
+         per = round(count/total*100, 1))
+
+
+g1 <- ggplot(df.pie, aes(x = "", y = per, fill = Termd)) +
+  geom_bar(stat = "identity") +
+  coord_polar(theta = "y", start = 0, direction = -1) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  geom_text(aes(label = paste0(Termd, "\n", 
+                               per, "%", "\n",
+                               "(", count, ")")),
+            position = position_stack(vjust = 0.5)) +
+  scale_fill_brewer(palette = 4) + labs(title = "Proportion of Active Employees in Dataset", 
+                                        subtitle = "33.4% have been terminated and 66.6% are active")
+
+# From now on, Lets study the terminated employee only.
+
+df_term <- df8.5 %>% 
+  filter(Termd == "1")
+
+g2 <- ggplot(df_term, aes(x = years_worked)) +
+  geom_histogram(color = "black", fill = "purple") +
+  theme_bw() +
+  labs(title = "Numbers of Years that Terminated Employees have worked") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold")) 
+
+# Reasons of leaving
+
+df <- df_term %>% 
+  dplyr::select(TermReason, EmploymentStatus) %>% 
+  group_by(TermReason, EmploymentStatus) %>% 
+  summarise(count = n())
+
+g3 <- ggplot(df, aes(y = fct_reorder(TermReason, count), x = count, fill = EmploymentStatus)) +
+  geom_histogram(stat = "identity", color = "black", width = 0.5) +
+  theme_bw() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5, face = "bold"),
+        axis.title.y = element_blank()) +
+  labs(title = "Top Reasons Terminated Employees Left") +
+  geom_text(aes(label = count), hjust = -0.3) +
+   facet_wrap(~EmploymentStatus, scale = "free", nrow = 2, ncol = 1)
+
+# Performance Score of Terminated Employees
+
+df <- df_term %>% 
+  dplyr::select(PerformanceScore) %>% 
+  group_by(PerformanceScore) %>% 
+  summarise(count = n())
+
+g4 <- ggplot(df, aes(y = fct_reorder(PerformanceScore, count), x = count)) +
+  geom_histogram(stat = "identity", color = "black", fill = "green4", width = 0.5) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"),
+        axis.title.y = element_blank()) +
+  labs(title = "The Performance Score of Terminated Employees") +
+  geom_text(aes(label = count), hjust = -0.3)
+
+# Employment Satisfaction
+
+df <- df_term %>% 
+  dplyr::select(EmpSatisfaction ) %>% 
+  group_by(EmpSatisfaction ) %>% 
+  summarise(count = n())
+
+g5 <- ggplot(df, aes(y = fct_reorder(EmpSatisfaction , count), x = count)) +
+  geom_histogram(stat = "identity", color = "black", width = 0.5, fill = "orange") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"),
+        axis.title.y = element_blank()) +
+  labs(title = "Employment Satisfaction of Terminated Employees") +
+  geom_text(aes(label = count), hjust = -0.3)
+
+# Others
+
+df <- df_term %>% 
+  dplyr::select(Salary, EngagementSurvey, SpecialProjectsCount, DaysLateLast30, Absences) %>% 
+  remove_rownames() %>% 
+  pivot_longer(c(1:5), names_to = "myvar", values_to = "myval") %>% 
+  mutate(myvar = as.factor(myvar))
+
+g6 <- ggplot(df, aes(x = myval)) +
+  geom_histogram(color = "black", fill = "white") +
+  facet_wrap(~myvar, scale = "free") +
+  theme_classic() +
+  theme(strip.background = element_rect(fill = "grey"),
+        strip.text = element_text(size = 10),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(title = "Other Aspects of Terminated Employees")
+
+# Dashboard
+
+top <- plot_grid(g1, g2, g3, nrow = 1)
+middle <- plot_grid(g4, g5)
+
+
+plot_grid(top, middle, g6, ncol = 1)
+
+
+
+```
+
+**Insights** 
+
+* In the dataset, 104 of employees have left and I will be using their data to predict who is going to be terminated.  
+
+* 
+
+
+
+```{r}
+colnames(df_term)
+```
+
+```{r}
+summary(df_term)
+```
+
+```{r}
+glimpse(df_term)
+```
+
+
+```{r}
+df_term <- df8.5 %>% 
+  filter(Termd == "1")
+
+ggplot(df_term, aes(x = years_worked)) +
+  geom_histogram(color = "black", fill = "purple") +
+  theme_bw() +
+  labs(title = "Numbers of Years that Terminated Employees have worked") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold")) +
+  axis.scale.y
 
 ```
 
 
 
 
+**1. Feature Selection**
 
+The best features (Variables) for the predictions would be following variables. 
+
+
+```{r}
+df8.5.2 <- hr2 %>% 
+   select(Salary, Termd, Position, Age, Sex, MaritalDesc, CitizenDesc, HispanicLatino, RaceDesc, years_worked, Department, ManagerName, RecruitmentSource, PerformanceScore, EngagementSurvey, EmpSatisfaction, SpecialProjectsCount, DaysLateLast30, Absences)
+
+names(df8.5.2) %>% 
+  kbl(col.names = "Variables") %>% 
+  kable_styling(bootstrap_options = c("striped", "bordered"), full_width = F)
+  
+```
+
+
+**2. Train-Test split**
+
+
+
+
+
+**3. Classification algorithms**
+
+
+**4. Cross-validation**
+
+
+**5. Prediction**
 
 
 
@@ -682,8 +1396,12 @@ Clustering and dimensionality reduction techniques on the Berlin Airbnb data and
 
 KASSAMBARA A 2017, *Practical Guide To Principal Component Methods in R*, Edition 1, sthda.com
 
+Lovelytics 2020, *HR Diversity Scorecard*, viewed 15 May 2022, https://www.youtube.com/watch?v=oaLp5eBi6E8
+
 Rich Huebner 2020, *Human Resources Data Set*, viewed 2 May 2022, https://www.kaggle.com/datasets/rhuebner/human-resources-data-set?resource=download 
 
 Rich Huebner 2021, *Codebook - HR Dataset v14*, viewed 3 May 2022, https://rpubs.com/rhuebner/hrd_cb_v14
 
 Wicked Good Data - r 2016, *https://www.r-bloggers.com/2016/06/clustering-mixed-data-types-in-r/*, viewed 8 May 2022
+
+Will Tracz 2021, *HR Tech Is the Key: Here’s How to Get It Right*, viewed 14 May 2022, https://hrdailyadvisor.blr.com/2021/08/03/hr-tech-is-the-key-heres-how-to-get-it-right/
