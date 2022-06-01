@@ -17,6 +17,7 @@ always_allow_html: yes
 
 ## 1 SUMMARY
 
+This is an ambitious project that aimed
 
 
 ## 2 R PACKAGES 
@@ -1353,6 +1354,19 @@ grid.arrange(top, middle, g6,
 
 #### 8.5.2 Supervised Machine Learning
 
+The goal here is to make a model to correctly predict whether an employee is terminated or not, which is known as an binary classification problem. I will be using three relevant algorithms to achieve the task, I will use the training dataset to train these algorithms, use them to predict on the test set, and to check out who is the best classifier. The three candidates are:   
+
+* 1. k-nearest Neighbors (KNN)   
+* 2. Support Vector Machine (SVM)  
+* 3. Random Forest  
+
+It is very important to set up an initial tune for this binary classification task, **this task is more interested to correctly predicting "1" than "0"**. 
+
+The understanding of the goal is very subtle here. The goal is to able to accurately predict, the current employees, who is going to terminate (voluntarily or involuntarily by valid or any other reasons). It means when I use the model, I am more interested in knowing who is leaving, and so I can plan a take-over of the shift or initiate recruitment. Therefore, I am more interested in correctly predicting "1" than "0". 
+
+It is also indicating that the level of "sensitivity" (ability of correctly predicting 1) of a model is more important than "accuracy" and "specificity". Therefore, "sensitivity" will be my criteria at choosing the final algorithm, though I do hope optimally three of these metrics can be at the same, high level,
+
+
 **1. Feature Selection**
 
 The best features (Variables) for the predictions would be following variables. 
@@ -1399,14 +1413,7 @@ table(test.set$Termd)
 
 **3. Classification algorithms**
 
-I will be using the train set to build 3 classifier algorithms, let them predict on the test set to check out who is the best  classifier. 
-
-* 1. k-nearest Neighbors (KNN)   
-* 2. Support Vector Machine (SVM)  
-* 3. Random Forest  
-
-
-*1. k-Nearest Neighbors (KNN)*
+##### (i) K-Nearest Neighbors (KNN)*
 
 When new observations are supplied, this algorithm will predict the outcome of these new observations by comparing them with their k-similar cases in the dataset. 
 
@@ -1416,7 +1423,7 @@ Finally, it predicts the outcome of an unknown new data point by seeing the clos
 
 Fitting the KNN model:
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 set.seed(123)
 
 model_knn <- train(Termd ~., train.set,
@@ -1426,55 +1433,172 @@ model_knn <- train(Termd ~., train.set,
                    tuneLength = 50)
 ```
 
+The model will automatically use the K that has the highest accuracy (doesn't mean it is good, I will tune it for best sensitivity and specificity). Following graph shows the accuracy rate of different number of K-neighbors detected from the KNN model. 
 
 ```{r}
-plot(model_knn, main = "hi")
-abline(v=33)
+set.seed(122)
+
+# df
+knn_model_df <- model_knn$results %>% select(k, Accuracy) %>%
+  mutate(Accuracy = round(Accuracy, 4),
+         highest = ifelse(Accuracy == 0.7482, "0.7482", NA))
+
+# plot
+ggplot(knn_model_df, aes(x = k, y = Accuracy)) +
+  geom_point(color = "blue") +
+  geom_path(color = "blue") +
+  geom_vline(xintercept = 15, linetype = 2) +
+  annotate(geom = "text", x = 31, y = 0.67, 
+           label = "Best K: 15 (model_knn$bestTune)",
+           size = 3) +
+  theme_classic() +  
+  geom_text_repel(aes(label = highest)) +
+  labs(title = "cross-validation")
 
 ```
 
-```{r}
-model_knn$bestTune
-
-```
+Looking at the results on confusion matrix:
 
 ```{r}
+
 predicted.classes.knn <- model_knn %>% predict(test.set)
 
-mean(predicted.classes.knn == test.set$Termd)
-
-```
-
-
-```{r}
 confusionMatrix(predicted.classes.knn, test.set$Termd, positive = "1")
 
 ```
-* Sensitivity is only 42% which is the proportion of terminated staff correctly identified as terminated.
+The overall accuracy is 74.2%, but the most interested metric "sensitivity" is only 29%. Sensitivity is the proportion of terminated staffs being correctly identified as terminated. The specificity, the chance of getting who is not terminated is very high at 96%. 
+
+The probability used to classify an observation point was at the default level of 0.50 (50%), this level generally works well. However, the probability can be adjusted by ROC to increase the "sensitivity" rate.
+
+ROC curve below will be used to tune the model by searching the best probability cut off point. The ideal cut-off point should have an increment of sensitivity at the expense of "1 - specificity", or known as having a higher level of "true positive rate" in the expense of "false positive rate", and finally both metric achieve at a similar level.
 
 ```{r}
 
-predicted.classes.knn.prob <- model_knn %>% predict(test.set, type = "prob")
+predicted.classes.knn.prob <- model_knn %>% 
+  predict(test.set, 
+          type = "prob")    # Picking column "1" for probability of being terminated 
 
-res.roc.knn <- roc(test.set$Termd, predicted.classes.knn.prob[,1])
-plot.roc(res.roc.knn, print.auc = T)
+res.roc.knn <- roc(test.set$Termd, 
+                   predicted.classes.knn.prob[,2]) # use col "1" for prob of being terminated 
+
+# Plot the grah
+
+library(pROC)
+
+plot.roc(res.roc.knn, 
+         print.auc = T,
+         print.thres = T,
+         auc.polygon = T,
+         auc.polygon.col = "green",
+         max.auc.polygon = T,
+         main = "ROC - Decision Tree")
+
 ```
+The best probability is 0.3. 
+
+The final step will be predicting on an unknown dataset (data without label) however it is not available in this project. So let's pretend the test set is an unknown dataset and I predict on it using KNN and probability threshold of 0.3. It is a manual procedure and require a bit of codes to achieve it. 
 
 ```{r}
-res.roc.knn <- roc(test.set$Termd, predicted.classes.knn.prob[,2])
-plot.roc(res.roc.knn, print.auc = T)
+# Predict on the test set, it is essential the same code as the previous code chunk before, but duplicating there to help digesting the workflow.  
+
+predicted.classes.knn.prob2 <- model_knn %>% 
+  predict(test.set, type = "prob")
+
+# Set up dataframe that use 0.3 as the threshold. 
+
+knn_finaldf <- predicted.classes.knn.prob2 %>% 
+  dplyr::select("1") %>% 
+  rename("termd" = "1") %>% 
+  mutate(outcome_0.3prob = ifelse(termd > 0.3, "1", "0"),
+         outcome_0.3prob = as.factor(outcome_0.3prob))
+
+
+# confusion matrix
+
+confusionMatrix(knn_finaldf$outcome_0.3prob,
+                test.set$Termd,
+                positive = "1")
 
 ```
 
+Now, when I use the KNN model to make the class prediction again at a new probability threshold of 0.3 instead of 5:
 
-**5. Prediction**
+* Accuracy rate drops slightly from 74% to 70%  
+
+* Sensitivity rate increase drastically from 29% to 71%, (now it is more accurate to predict who is leaving)    
+
+* Specificity rate drops from 97% to 69%. It was expensed to optimise sensitivity. Specificity is to predict who is not leaving and is not the most interest metric in this project.  
+
+
+##### (ii) Support Vector Machine 
+
+KNN was a type of classification algorithm that has its own approach at classifying observations, but when compared to support vector machine (SVM), the approach is very different. 
+
+Instead of looking at "how are the nearest neighbors are doing", SVM will identify the optimal decision boundary that separates data points from different groups, so that one group/class of data points is in one side of the boundary, and the other group/class of data points are in other side. Then, SVM will make predictions of new data points based on this boundary. 
+
+There are multiple available decision boundary available when finding the best one, SVM will choose the optimal one that maximises a distance that is furthest away to points in either category. This distance is called **margin**, and points that fall on the margin are known as **supporting vectors**.
+
+SVM can handle both linear and non-linear boundaries, and typically non-linear in real life data. Therefore, I will be using a relevant SVM algorithm for non-linear classification, it can be either polynomial kernel or radial kernel functions. Actually, I will be only showing and using polynomial kernel because it has a better predictive power than radial kernel from a test I have run before publishing this project. 
+
+Fitting the Polynomial kernel SVM algorithm:
+
+```{r, warning=FALSE, message=FALSE}
+set.seed(123)
+
+model_svmPoly <- train(Termd~., data = train.set,
+                        method = "svmPoly",
+                       trControl = trainControl("cv", number = 10),
+                       tuneLength = 4,
+                       preProcess = c("center", "scale"))
+
+```
+
+The best tune for the *Cost*(c) of this radial SVM is 4 and will be automatically picked in the algorithm when making prediction (next step).
+
+```{r}
+model_svmPoly$bestTune
+
+```
+
+Making predictions on the test set, and following are the results:
+
+```{r}
+pred_svmPoly <- model_svmPoly %>% predict(test.set)
+table(pred_svmPoly)
+```
+The model predicted 65 employees from the test set are current employees (0) and 28 have left (1). I have actually the actual data that whether the predictions on each employee by the SVM model on the test set is correct or incorrect, and it will be displayed in confusion matrix below:
+
+```{r}
+confusionMatrix(pred_svmPoly, test.set$Termd, positive = "1")
+
+```
+
+ROC doesn't work for SVM-radial as there is no predicted probabilities of each observation points available to create the ROC curve. Therefore, the results above will be the final result of Radial-SVM and as the reference when predicting new unknown dataset. 
+
+However, the results are pretty flying colour.   
+
+* The accuracy is 92%, which is 22% more accurate than KNN     
+* The sensitivity and specificity are quite close to each other, and therefore the accuracy   rate is not miss-leading    
+* The sensitivity is very good at 83.4%, and it is our metric of interest    
+* The specificity is very high at 96.8%  
+
+
+##### (iii) Random Forest
+
+![](https://raw.githubusercontent.com/KAR-NG/hr/main/pic1_forest.jpg)
+
+
+
 
 
 
 
 ## REFERENCE
 
+
 Clustering and dimensionality reduction techniques on the Berlin Airbnb data and the problem of mixed data (n.d.),viewed 15 May 2022 https://rstudio-pubs-static.s3.amazonaws.com/579984_6b9efbf84ee24f00985c29e24265d2ba.html 
+
+Forest picture in section 8.5.2, credit: Michael Thirnbeck 2010,   https://www.flickr.com/photos/thirnbeck/4547405603
 
 KASSAMBARA A 2017, *Practical Guide To Principal Component Methods in R*, Edition 1, sthda.com
 
