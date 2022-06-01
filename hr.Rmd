@@ -36,7 +36,9 @@ library(Rtsne)
 library(gplots)
 library(ggrepel)
 library(caret)
+library(pROC)
 library(ggpubr)
+
 
 ```
 
@@ -1038,7 +1040,7 @@ The goal of this question is to detect unequal pay among who does the same job. 
 
 Two parts in this analysis: (1) Visual exploration, (2) Regression
 
-**1. Visualiation**
+**1. Visual Exploration**
 
 Following are selected variables that are relevant to achieve the goal of this section. 
 
@@ -1186,14 +1188,14 @@ Therefore, I can conclude that the company is paying her employees quite equally
 
 
 
-### 8.5 we predict who is going to terminate and who isn't? What level of accuracy can we achieve on this?
+### 8.5 Can we predict who is going to terminate and who isn't? What level of accuracy can we achieve on this?
 
 To answer this question, one must apply Classification Algorithm from machine learning domain. It is clealy identifiable that it is a binary classification problem, for example, either "Yes" or "No", or "1" or "0", and in this case, is whether "Yes" the employee is leaving or "No" the employee is not leaving. 
 
 There are a lot of relevant variables in the dataset, and the most relevant variable is "Termd", it tells us that has a particular employee in the dataset been terminated with a label of either 1 or 0 (Terminated or Not). It will be the core of the analysis, for both either visualisation or machine learning. 
 
 
-**1. Exploratory Visual**
+#### 8.5.1 Visual Exploration
 
 In this section, lets study the characteristics who have left the company using a visual way. 
 
@@ -1205,8 +1207,9 @@ df8.5 <-  hr2 %>%
 ```
 
 
+Creating graphs:
 
-```{r, fig.width=6, fig.height=8, message=FALSE, warning=FALSE}
+```{r, fig.width=14, fig.height=12, message=FALSE, warning=FALSE}
 # pie chart
 
 df.pie <- df8.5 %>% dplyr::select(Termd) %>% 
@@ -1225,7 +1228,8 @@ g1 <- ggplot(df.pie, aes(x = "", y = per, fill = Termd)) +
         axis.title = element_blank(),
         axis.text = element_blank(),
         plot.title = element_text(hjust = 0.5, face = "bold"),
-        plot.subtitle = element_text(hjust = 0.5)) +
+        plot.subtitle = element_text(hjust = 0.5), 
+        plot.background = element_rect(color = "white")) +
   geom_text(aes(label = paste0(Termd, "\n", 
                                per, "%", "\n",
                                "(", count, ")")),
@@ -1241,8 +1245,9 @@ df_term <- df8.5 %>%
 g2 <- ggplot(df_term, aes(x = years_worked)) +
   geom_histogram(color = "black", fill = "purple") +
   theme_bw() +
-  labs(title = "Numbers of Years that Terminated Employees have worked") +
-  theme(plot.title = element_text(hjust = 0.5, face = "bold")) 
+  labs(title = "Numbers of Years that \nTerminated Employees have worked") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold")) +
+  scale_x_continuous(limits = c(0, 10), breaks = seq(0, 10, 1)) 
 
 # Reasons of leaving
 
@@ -1257,9 +1262,10 @@ g3 <- ggplot(df, aes(y = fct_reorder(TermReason, count), x = count, fill = Emplo
   theme(legend.position = "none",
         plot.title = element_text(hjust = 0.5, face = "bold"),
         axis.title.y = element_blank()) +
-  labs(title = "Top Reasons Terminated Employees Left") +
+  labs(title = "Top Reasons \nTerminated Employees Left") +
   geom_text(aes(label = count), hjust = -0.3) +
-   facet_wrap(~EmploymentStatus, scale = "free", nrow = 2, ncol = 1)
+   facet_wrap(~EmploymentStatus, scale = "free_y", nrow = 2, ncol = 1) +
+  scale_x_continuous(limits = c(0, 25), breaks = seq(0, 25, 5))
 
 # Performance Score of Terminated Employees
 
@@ -1272,7 +1278,8 @@ g4 <- ggplot(df, aes(y = fct_reorder(PerformanceScore, count), x = count)) +
   geom_histogram(stat = "identity", color = "black", fill = "green4", width = 0.5) +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5, face = "bold"),
-        axis.title.y = element_blank()) +
+        axis.title.y = element_blank(),
+        plot.margin = unit(c(1,1,1,1), "cm")) +
   labs(title = "The Performance Score of Terminated Employees") +
   geom_text(aes(label = count), hjust = -0.3)
 
@@ -1287,7 +1294,8 @@ g5 <- ggplot(df, aes(y = fct_reorder(EmpSatisfaction , count), x = count)) +
   geom_histogram(stat = "identity", color = "black", width = 0.5, fill = "orange") +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5, face = "bold"),
-        axis.title.y = element_blank()) +
+        axis.title.y = element_blank(),
+        plot.margin = unit(c(1,1,1,1), "cm")) +
   labs(title = "Employment Satisfaction of Terminated Employees") +
   geom_text(aes(label = count), hjust = -0.3)
 
@@ -1300,7 +1308,7 @@ df <- df_term %>%
   mutate(myvar = as.factor(myvar))
 
 g6 <- ggplot(df, aes(x = myval)) +
-  geom_histogram(color = "black", fill = "white") +
+  geom_freqpoly(color = "brown", size = 1) +
   facet_wrap(~myvar, scale = "free") +
   theme_classic() +
   theme(strip.background = element_rect(fill = "grey"),
@@ -1314,57 +1322,45 @@ top <- plot_grid(g1, g2, g3, nrow = 1)
 middle <- plot_grid(g4, g5)
 
 
-plot_grid(top, middle, g6, ncol = 1)
-
+grid.arrange(top, middle, g6, 
+             ncol = 1,
+             top = textGrob("Analysis of Past Terminated Employees\n",
+                            gp = gpar(fontface = 2, fontsize = 25)),
+             bottom = textGrob("Kar Ng",
+                               gp = gpar(fontface = 3, fontsize = 12),
+                               hjust = 1,
+                               x = 1))
 
 
 ```
+
 
 **Insights** 
 
-* In the dataset, 104 of employees have left and I will be using their data to predict who is going to be terminated.  
+* In the dataset, 104 of employees have left and I will be using their data to predict who is going to be terminated.    
 
-* 
+* Most past employees have worked between 1 to 7 years, with picks at 1 year.   
 
+* Most of them voluntarily with top reasons between "another position", "unhappy" and "more money".   
+* 81 past employees have fully met the performance score, 8 were even exceeds the performance score. Only small amount of past employees needs improvement at 10, and 5 of PIP.   
 
+* Most past employees are satisfied at their job at least 3 out of 5 rating.  
 
-```{r}
-colnames(df_term)
-```
+* Most of them also do not late to work, many of them even highly engaging.   
 
-```{r}
-summary(df_term)
-```
-
-```{r}
-glimpse(df_term)
-```
+* Their salaries are generally between 50k to 70k, and most of them do not have special project.   
 
 
-```{r}
-df_term <- df8.5 %>% 
-  filter(Termd == "1")
-
-ggplot(df_term, aes(x = years_worked)) +
-  geom_histogram(color = "black", fill = "purple") +
-  theme_bw() +
-  labs(title = "Numbers of Years that Terminated Employees have worked") +
-  theme(plot.title = element_text(hjust = 0.5, face = "bold")) +
-  axis.scale.y
-
-```
-
-
-
+#### 8.5.2 Supervised Machine Learning
 
 **1. Feature Selection**
 
 The best features (Variables) for the predictions would be following variables. 
 
-
 ```{r}
 df8.5.2 <- hr2 %>% 
-   select(Salary, Termd, Position, Age, Sex, MaritalDesc, CitizenDesc, HispanicLatino, RaceDesc, years_worked, Department, ManagerName, RecruitmentSource, PerformanceScore, EngagementSurvey, EmpSatisfaction, SpecialProjectsCount, DaysLateLast30, Absences)
+   select(Termd, Salary, Position, Age, Sex, MaritalDesc, CitizenDesc, HispanicLatino, RaceDesc, years_worked, Department, ManagerName, RecruitmentSource, PerformanceScore, EngagementSurvey, EmpSatisfaction, SpecialProjectsCount, DaysLateLast30, Absences) %>% 
+  remove_rownames()
 
 names(df8.5.2) %>% 
   kbl(col.names = "Variables") %>% 
@@ -1372,17 +1368,103 @@ names(df8.5.2) %>%
   
 ```
 
-
 **2. Train-Test split**
 
+I am applying 70:30 to split the data into train and test set. Train set will be used to train the model and test set will be used to evaluate the accuracy of the model.
 
+```{r}
+# Create Data Partition
 
+training.samples <- df8.5.2$Termd %>% createDataPartition(p = 0.7, list = F)
 
+# create train and test set
+
+train.set <- df8.5.2[training.samples, ]
+test.set <- df8.5.2[-training.samples, ]
+
+```
+
+There are 218 rows of data in the train set with 145 of "0" and 73 of "1" category.
+```{r}
+nrow(train.set)
+table(train.set$Termd)
+```
+Whereas, there are 93 rows of data in the test set with 62 of "0" and 31 of "1" category.
+
+```{r}
+nrow(test.set)
+table(test.set$Termd)
+
+```
 
 **3. Classification algorithms**
 
+I will be using the train set to build 3 classifier algorithms, let them predict on the test set to check out who is the best  classifier. 
 
-**4. Cross-validation**
+* 1. k-nearest Neighbors (KNN)   
+* 2. Support Vector Machine (SVM)  
+* 3. Random Forest  
+
+
+*1. k-Nearest Neighbors (KNN)*
+
+When new observations are supplied, this algorithm will predict the outcome of these new observations by comparing them with their k-similar cases in the dataset. 
+
+The KNN algorithm starts by scaling the data, calculating euclidean distance measure between observations, then creating a principal component plot built by PC1 and PC2, all observations in the training set will then be on the plot in a clustered nature. 
+
+Finally, it predicts the outcome of an unknown new data point by seeing the closest k-similar cases. For example, if K is set at 6 (number of nearest points), and if 5 nearest points are terminated employees, and 1 is current employee, the new data point will be determined by the most votes which is to be classified as a terminated employees.
+
+Fitting the KNN model:
+
+```{r}
+set.seed(123)
+
+model_knn <- train(Termd ~., train.set,
+                   method = "knn",
+                   trControl = trainControl("cv", number = 10),
+                   preProcess = c("center", "scale"),
+                   tuneLength = 50)
+```
+
+
+```{r}
+plot(model_knn, main = "hi")
+abline(v=33)
+
+```
+
+```{r}
+model_knn$bestTune
+
+```
+
+```{r}
+predicted.classes.knn <- model_knn %>% predict(test.set)
+
+mean(predicted.classes.knn == test.set$Termd)
+
+```
+
+
+```{r}
+confusionMatrix(predicted.classes.knn, test.set$Termd, positive = "1")
+
+```
+* Sensitivity is only 42% which is the proportion of terminated staff correctly identified as terminated.
+
+```{r}
+
+predicted.classes.knn.prob <- model_knn %>% predict(test.set, type = "prob")
+
+res.roc.knn <- roc(test.set$Termd, predicted.classes.knn.prob[,1])
+plot.roc(res.roc.knn, print.auc = T)
+```
+
+```{r}
+res.roc.knn <- roc(test.set$Termd, predicted.classes.knn.prob[,2])
+plot.roc(res.roc.knn, print.auc = T)
+
+```
 
 
 **5. Prediction**
@@ -1392,7 +1474,7 @@ names(df8.5.2) %>%
 
 ## REFERENCE
 
-Clustering and dimensionality reduction techniques on the Berlin Airbnb data and the problem of mixed data (n.d.),viewed 15 May 2022 https://rstudio-pubs-static.s3.amazonaws.com/579984_6b9efbf84ee24f00985c29e24265d2ba.html
+Clustering and dimensionality reduction techniques on the Berlin Airbnb data and the problem of mixed data (n.d.),viewed 15 May 2022 https://rstudio-pubs-static.s3.amazonaws.com/579984_6b9efbf84ee24f00985c29e24265d2ba.html 
 
 KASSAMBARA A 2017, *Practical Guide To Principal Component Methods in R*, Edition 1, sthda.com
 
