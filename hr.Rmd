@@ -17,7 +17,17 @@ always_allow_html: yes
 
 ## 1 SUMMARY
 
-This is an ambitious project that aimed
+This project applies a series of data mining techniques including clustering, principal component methods, regression, and classification algorithms to study inner trends hide the dataset. Numerous visualisation were also applied to aid each of these data mining methods. In this project 5 analytically tasks have been completed using VAT validated gower-PAM clustering, correspondence analysis (CA)'s asym-biplot, multiple correspondence analysis (MCA), Chi-Squared test, Regression, and predictive classification models with KNN, SVM, and Random Forest.
+
+Outputs show that there is no statistical evidence (p-value = 0.249) to support the argument that several managers among all are good at training their employees or bad. Instead, most managers are good at training their subordinates reaching the "fully meet" standard. The company do actively hire employees from diverse backgrounds. The company has a good level of overall diversity level at 76%. 40% of the employees in the company are female and 40% are employees from diverse backgrounds. The company recruits employees from 8 sources and diversity job fair is the best choice if the company is keen to hire an employee from a diverse background, and employee-referral being the worst.
+
+Inferential regression was apply to studied the relationships between salary and numerous factors (variables) that would potentially relates to unequal pay, such as age, years of working, race, gender and etc, and the result shows that the company is paying employees equally, supported by p-value of higher than 0.05. Finally, this dataset provide sufficent data to train a model with great predictive power. K-Nearest Neighbor (KNN), Polynomial kernel Support Vector Machine (SVM) and Random Forest were selected as the modeling candidates. Output shows that Random Forest models were tested and the result shows Random Forest model with 0.405 probability cut-off point is the best algorithm for us to make prediction for who is leaving the company. It has a reliable overall accuracy rate at 95.6%, sensitivity rate of 93.5% (the metric that we are most interested in) and specificity rate of 96.9%. 
+
+
+
+
+
+
 
 
 ## 2 R PACKAGES 
@@ -39,6 +49,9 @@ library(ggrepel)
 library(caret)
 library(pROC)
 library(ggpubr)
+library(grid)
+library(gridExtra)
+library(corrplot)
 
 
 ```
@@ -47,26 +60,39 @@ library(ggpubr)
 
 ## 3 INTRODUCTION
 
-This project analyses a set of human resource data by applying one of the core machine learning technique, "Principal Components (PC) methods", which belong to the "unsupervised" branch of machine learning domain. 
+The aim of this project is to analyse a human resource dataset to answer 5 business questions:
 
-There are 5 main types of principal components methods:
+* 1. Is there any relationship between who a person works for and their performance score?    
+* 2. What is the overall diversity profile of the organization?    
+* 3. What are our best recruiting sources if we want to ensure a diverse organization?    
+* 4. Are there areas of the company where pay is not equitable?    
+* 5. Can we predict who is going to terminate and who isn't? What level of accuracy can we achieve on this?   
 
-* Principal Component Analysis (PCA)    
+Different machine learning techniques will be used in this project to answer these questions or during exploratory analysis, they include:
+
+* Applying clustering for mixed-data,      
+* Several appropriate principal component methods,     
+* Regression algorithms, and   
+* Classification algorithms     
+
+A quick introduction about the rarer "Principal Components (PC) methods", it belongs to the "unsupervised" branch of machine learning domain. There are 5 main types of principal components methods:
+
+* Principal Component Analysis (PCA)     
 * Correspondence Analysis (CA)    
-* Multiple Correspondence Analysis (MCA)  
-* Factor Analysis of Mixed Data (FAMD)  
-* Multiple Factor Analysis (MFA)  
+* Multiple Correspondence Analysis (MCA)   
+* Factor Analysis of Mixed Data (FAMD)   
+* Multiple Factor Analysis (MFA)   
 
-These PC methods are designed for different type of datasets, I will apply the most appropriate one for the dataset used in this project, and which will be decided in later section.
+These PC methods are designed to be used for different type of datasets. For examples, PCA is used for datasets that have only numerical variables (or known as "feature" to describe explanatory variables), or, FAMD and MFA will be used for mixed-data datasets that have both numerical and categorical variables. I will apply the most appropriate one for the dataset used in this project, and which will be decided in later section after I explore the data.
 
-Principal component methods are typically used for multivariate analysis (MVA) when we are analysing datasets that have many variables. PC methods will quickly help us identifying the most important variables that contribute the most in explaining the variations in the data sets. 
+PC methods would help us identifying the most important variables that contribute the most in explaining the variations in a dataset. During computation, PC methods will extract all the variations in the multivariate dataset and express them into a few new variables called principal components (Some other inter-changeable terms with similar meaning are "dims" or "axes"). Then, many special plots of PC will be plotted to study the results. Important to note that the goal of PC methods is to identify main directions along which the variation is maximal (KASSAMBARA A 2017). 
 
-During computation, PC methods will extract all the variations in the multivariate dataframe and expressed them into a few new variables called principal components (there are other inter-changeable terms with similar meaning in this context, such as "dims" or "axes"). After previous step, many special plots of PC will be plotted to understand the result. Important to note that the goal of PC methods is to identify main directions along which the variation is maximal (KASSAMBARA A 2017). 
+Please be expecting this project would be a slightly long project as it is built for skills demonstration purposes.
 
 
 ## 4 DATA PREPARATION
 
-A public dataset called "Human Resources Data Set" by DR.RICH on Kaggle.com has been downloaded for this project. *Kaggle.com* is a popular website for data science community to share datasets, codes and knowledge. 
+A public dataset called "Human Resources Data Set" prepared by DR.RICH on Kaggle.com has been downloaded for this project. *Kaggle.com* is a popular website for data science community to share datasets, codes and projects. 
 
 ### 4.1 Data import
 
@@ -76,11 +102,9 @@ Importing the dataset into R:
 hr <- read.csv("hr_dataset.csv", 
                fileEncoding = "UTF-8-BOM",
                na.strings = T,
-               header = T,
-               row.names = NULL)
+               header = T)
 
 ```
-
 
 ### 4.2 Data description
 
@@ -88,6 +112,7 @@ Following is the data dictionary/description of this dataset, adapted from this 
 
 
 ```{r}
+
 Variables <- c("Employee Name", 
                "EmpID",
                "MarriedID",
@@ -170,10 +195,9 @@ data.frame(Variables, Description) %>%
 
 ```
 
-
 ### 4.3 Data exploration
 
-There are 311 rows and 35 columns in the dataset. Following show the variable type allocated by R to each of the column (also known as variables or features), along with several starting values of these variables.
+There are 311 rows and 35 columns in the dataset. Following shows the variable types allocated by R to each of the column (also known as variables or features), along with several starting values of these variables.
 
 ```{r}
 glimpse(hr)
@@ -182,6 +206,8 @@ glimpse(hr)
 Randomly sample 10 rows of data from the table:
 
 ```{r}
+set.seed(123)
+
 sample_n(hr, 10)
 
 ```
@@ -198,23 +224,24 @@ hr <- hr %>%
  
 The data may seem perfectly to go however numerous important cleaning and manipulation tasks have been identified and will be completed in this section. 
 
-
 ### 5.1 Variables removals
 
-I will be removing some irrelevant or duplicated variables that may not be helpful in our analysis. They are:
+I will be removing some irrelevant or duplicated variables that may not be helpful in the analysis. They are:
 
-* EmpID  
-* MaritalStatusID  
-* GenderID  
-* EmpStatusID  
-* DeptID  
-* PerfScoreID  
-* PositionID  
-* Zip  
-* ManagerID  
-* LastPerformanceReview_Date
+* EmpID    
+* MaritalStatusID    
+* GenderID    
+* EmpStatusID    
+* DeptID    
+* PerfScoreID    
+* PositionID    
+* Zip    
+* ManagerID    
+* LastPerformanceReview_Date  
+* MarriedID   
+* FromDiversityJobFairID  
 
-After removal of above features, the numbers of columns have been reduced from 35 to 22. 
+After removal of above features, the numbers of columns have been reduced from 35 to 23. 
 
 ```{r}
 hr2 <- hr %>%
@@ -226,31 +253,51 @@ glimpse(hr2)
 
 ### 5.2 New Variable: Age
 
-At the year of writing this project is 2022, and therefore the calculation of age will be 2022 minus DOB (date of birth) plus 1 in the dataset. The DOB will be replaced with "Age".
+At the year of writing this project was 2022, and therefore the calculation of age will be 2022 minus DOB (date of birth) plus 1 in the dataset. The DOB will be replaced with "Age".
 
 
 ```{r}
 hr2 <- hr2 %>% 
   mutate(yearDOB = str_sub(DOB, -2, -1),
          yearbirth = as.numeric(paste0(19, yearDOB)),
-         Age = 2022 - yearbirth) %>% 
+         Age = (2022 - yearbirth)+1) %>% 
   relocate(Age, .after = State) %>% 
   dplyr::select(-DOB, -yearDOB, -yearbirth)
 
 ```
-Now, the variable "DOB" has been replaced by "Age", 7th variable, and following shows the age of all employees in the dataset. 
+
+Now, the variable "DOB" has been replaced by "Age", and following shows the age of all employees in the dataset. 
 
 ```{r}
 hr2$Age
 
 ```
+The distribution:
+
+* Maximum: Located at the top tip of the boxplot      
+* Minimum: Located at the bottom tip of the boxplot      
+* Median: The horizontal line in the middle of the boxplot  
+
+```{r, fig.width=6}
+set.seed(123)
+
+ggplot(hr2, aes(y = Age, x = "")) +
+  geom_jitter(width = 0.1, alpha = 0.5,) +
+  geom_boxplot(outlier.shape = NA, width = 0.1, size = 2, color = "purple", alpha = 0.5) +
+  theme_classic() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank()) 
+
+```
+
+
 
 
 ### 5.3 New Variable: years_worked
 
-There are two variables in the date set: DateofHire and DateofTermination. 
+There are two variables in the date set, DateofHire and DateofTermination, are available to synthese a variable recording the service years of each employee.  
 
-I will compute the days of each employee worked/works by using the date of termination (DateofTermination) minus date of hire (DateofHire), and for present employees I will use today's date (5-May-2022) minus the date of hire to obtain the total number of days worked. 
+I will compute the days of working of each employee by using the date of termination (DateofTermination) minus date of hire (DateofHire), and for present employees I will use today's date (5-May-2022) minus the date of hire to obtain the total number of days worked. 
 
 ```{r}
 
@@ -273,9 +320,30 @@ hr2$years_worked
 
 ```
 
+The distribution:
+
+* Maximum: Located at the top tip of the boxplot      
+* Minimum: Located at the bottom tip of the boxplot      
+* Median: The horizontal line in the middle of the boxplot  
+
+```{r, fig.width=6}
+set.seed(123)
+
+ggplot(hr2, aes(y = years_worked, x = "")) +
+  geom_jitter(width = 0.1, alpha = 0.5,) +
+  geom_boxplot(outlier.shape = NA, width = 0.1, size = 2, color = "blue", alpha = 0.5) +
+  theme_classic() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank()) +
+  labs(y = "Years Worked")
+  
+
+```
+
+
 ### 5.4 Trim
 
-This section trim the unnecessary leading and trailing white spaces of character variables in the dataset. 
+This section trims the unnecessary leading and trailing white spaces of character variables in the dataset. 
 
 ```{r}
 hr2 <- hr2 %>% 
@@ -287,16 +355,14 @@ hr2 <- hr2 %>%
 
 ### 5.5 Factor conversion
 
-Some "numeric" and "textual" features will need to be converted into "factor" type because of their categorical nature. 
-
-* All textual features that formed by character "chr" in this dataset need conversion to factor. Following shows all of these textual variables in the datasets.       
+Some "numeric" and "textual" features will need to be converted into "factor" because of their categorical nature. After examination, all textual features that classified as character "chr" in this dataset need to be converted into factor. Following shows all of these textual variables in the datasets.       
 
 ```{r}
 str(hr2 %>% 
   select(is.character))
 
 ```
-Following codes complete the conversion task for these textual features. 
+Following codes complete the conversion task. 
 
 ```{r}
 hr2 <- hr2 %>% 
@@ -304,7 +370,7 @@ hr2 <- hr2 %>%
 
 ```
 
-* With regards to numeric features, features that need to be converted into factor type are MarriedID, FromDiversityJobFairID, Termd, and EmpSatisfaction.
+* With regards to numerical features, features that need to be converted into factor type are "MarriedID", "FromDiversityJobFairID", "Termd", and "EmpSatisfaction".
 
 ```{r}
 str(hr2 %>% 
@@ -312,16 +378,16 @@ str(hr2 %>%
 
 ```
 Following codes complete the conversion task for these selected numerical features.  
+
 ```{r}
+
 hr2 <- hr2 %>% 
   mutate(Termd = as.factor(Termd),
          EmpSatisfaction = as.factor(EmpSatisfaction))
 
 ```
 
-After conversion, we are able to use following code to summaries the dataset. For example, there are 187 of "0" and 124 of "1" for Married ID. The type of this variable has to be in factor form to make this summary feasible. 
-
-Different categories (or known as "level") in each factor variables are now feasible and countable.
+After conversion, we are able to use following code to summaries the dataset.
 
 ```{r}
 summary(hr2 %>% 
@@ -331,7 +397,7 @@ summary(hr2 %>%
 
 ### 5.6 CitizenDesc
 
-There are three categories for the variable "CitizenDesc", Eligible NonCitizen (12 employees), Non-Citizen (4 employees) and 295 US Citizen employees. I can't see why I can't merge "Eligible NonCitizen" and "Non-Citizen", and therefore this section will perform this task. 12 of the "Eligible NonCitizen" will be grouped to "Non-Citizen". 
+There are three categories in the variable "CitizenDesc", which are: (1) 12 employees of Eligible NonCitizen, (2) 4 employees of Non-Citizen, and (3) 295 US Citizen employees. This section will merge "Eligible NonCitizen" to "Non-Citizen", because though the 12 employees are eligible non-Citizen but they are not US citizen yet.
 
 ```{r}
 hr2 <- hr2 %>% 
@@ -350,14 +416,14 @@ table(hr2$CitizenDesc)
 
 ### 5.7 HispanicLatino
 
-The HispanicLatino has following 4 categories. 
+The variable "HispanicLatino" has following 4 categories. 
 
 ```{r}
 table(hr2$HispanicLatino)
+
 ```
 
-
-The "no" and "Yes" should be a mistake and have to be converted to "No" and "Yes". Following code complete the conversion. 
+The "no" and "Yes" should be a mistake and have to be converted to "No" and "Yes". Following code completes the conversion. 
 
 ```{r}
 hr2 <- hr2 %>% 
@@ -376,10 +442,11 @@ table(hr2$HispanicLatino)
 
 ### 5.8 Missing data check
 
-This section check missing data ("NA") in the dataset and will be managed accordingly. 
+This section check missing data ("NA") in the dataset. 
 
 ```{r}
 skim_without_charts(hr2)
+
 ```
 From the above function, there is no any missing data detected by the column "n_missing" or by the column "complete_rate".
 
@@ -394,16 +461,10 @@ colSums(is.na(hr2)) %>%
 
 There is now no any missing data detected.
 
-```{r}
-glimpse(hr2)
-
-
-```
-
 
 ## 6 VISUALISATION
 
-This section will help to deliver a preliminary understanding of the data distribution of each variable.
+This section will help to deliver a preliminary understanding of the data in the dataset.
 
 ### 6.1 Numerical variables
 
@@ -431,27 +492,23 @@ ggplot(df6.1, aes(x = my_values, fill = my_var)) +
 
 ```
 
-Insights from following summary:
+Insights from the summary:
 
-* There is no an obvious over trend of absence but it can reach out to a maximum of 20 days from a minimum of 1. 
+* There is no an obvious trend in the variable "absence" but it can reach out to a maximum of 20 days from a minimum of 1.   
 
 ```{r}
 summary(hr2$Absences)
 
 ```
 * Most employees are age between 30 to 55.   
-* Most employees do not late to work.    
+* Most employees do not late to work.     
 * Employees were mostly engaging.  
-* Salary has a positive skewed with majority of them having salary at about $60 to 80k.  
-* Most employees do not have special project.    
+* Salary has a positive skewed but majority of employees have salary at about $60-80k.  
+* Most employees do not have special project.     
 * For working years at the company, there is a normal distribution at around 8 years.  
 
 
-### 6.2 factor variables 1
-
-
-
-There are 15 factor variables to look at, I have spitted this exploration into two parts. In this part "factor variables 1", I will look at the first 8 factor variables.
+### 6.2 Categorical variables 
 
 ```{r, fig.height=16, fig.width=14, message=FALSE}
 # df
@@ -483,52 +540,67 @@ ggplot(df6.2, aes(y = label, x = count, fill = my_values)) +
 
 ```
 
-Quick general insights:
+General insights:
 
-The dataset is dominated by employees from the Massachusetts (MA), US, from the production department. Most employees in the dataset have titles in "Production Technician I" and "Production Technician II". There are many other departments and positions as well but are not too many numbers compared to technician positions. Employees in the dataset has a mentor system that each of them have a direct manager to learn and work for. 
+The dataset is dominated by employees from the Massachusetts (MA), US, from the production department. Most employees in the dataset have titles in "Production Technician I" and "Production Technician II". There are many other departments and positions as well but are not too many numbers compared to technician positions in the production department. Employees in the dataset has a mentor system that each of them have a direct manager to learn and work for. 
 
-Most employees are white and black or African american. Female employees are slightly more than male employees. Most employees are satisfied at their job at a level of score 3 and above, and most of them fully meet the performance score. 
+Most employees are white and black or African Americans, followed by Asian and other races. Female employees are slightly more than male employees. Most employees are satisfied at their job at a level of score 3 and above, and most of them fully meet the performance score. 
 
 
-### 6.4 Distribution study of continuous variable
+### 6.3 Distribution study of continuous variable
 
-A number of continuous variables are non-normality and contain outliers. 
+A number of continuous variables do not have a normal distribution and contain outliers. 
 
-```{r}
+```{r, fig.width=10}
 # set df
 
-df6.4 <- hr2 %>% select_if(is.numeric)
-df6.4 <- df6.4 %>% 
+df6.3 <- hr2 %>% select_if(is.numeric)
+df6.3 <- df6.3 %>% 
   pivot_longer(c(1:7), names_to = "myvar", values_to = "myval") %>% 
   mutate(myvar = as.factor(myvar))
 
 # plot
 
-ggplot(df6.4, aes(y = myvar, x = myval)) +
+ggplot(df6.3, aes(y = myvar, x = myval, color = myvar)) +
   geom_boxplot() +
-  facet_wrap(~myvar, scales = "free")
+  facet_wrap(~myvar, scales = "free") +
+  theme_bw() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = "none")
 
 ```
 
 
-After completing basic simple visualisation, we will now dive into more advanced data mining technique. 
+### 6.4 Relationship among Variables
 
+This section explores the relationships between numerical variables.
+
+```{r}
+df6.4 <- hr2 %>% select_if(is.numeric)
+
+mycor <- cor(df6.4)
+
+corrplot(mycor, method = "number")
+
+```
+Only 2 relationships are detected:
+
+* There is a positive relationship between the salary of an employee and the count of special project that he or she has.
+
+* There is a negative relationship between engagement survey and days an employee late in the last 30 days. A highly engaging employee may be motivated to work and won't be late.
+
+After completing several basic visualisation above, we will now dive into more advanced data mining techniques. 
 
 ## 7 CLUSTERING
 
-Clustering is a series of different techniques to find distinct groups of data within a dataset. To be specific in terms of "observation" and "variable", clustering is trying to group similar observations together, and each group should be distinct from each other. 
+Clustering is a series of different machine learning techniques to find distinct groups of data within a dataset. Clustering will try to group similar observations together, and each group should be distinct from each other if the dataset is clusterable intrinsically. 
 
 ### 7.1 Distance metrics
 
-The data is a mixed dataset and a special type of distance metrics to measure distance between observation will be used which is called Gower distance. For continuous variables inside the dataset, the Gower function will use manhattan distance, whereas for categorical variables, Gower function will use dice distance. Gower will then combine all these distance together and form a single distance value and which can be known as Gower distance. 
+The dataset of this project is a mixed dataset, which means the dataset contain numerical and categorical variables. A special type of distance metrics will be used to measure distance between observation, and which is called "Gower distance". For continuous variables in the dataset, the Gower function will use manhattan distance, whereas for categorical variables, Gower function will use dice distance. Gower will then combine all these distances together and form a single distance value, and which is known as Gower distance. 
 
-To compute gower distance between observations,
-
-```{r}
-glimpse(hr2)
-
-```
-
+To compute gower distance between observations:
 
 ```{r}
 gower.dis <- daisy(hr2, 
@@ -538,9 +610,10 @@ gower.dis <- daisy(hr2,
 summary(gower.dis)
 
 ```
-The Gower distance metric has now been computed for 311 rows of observations for this dataset with mixed data-types. 
 
-Following show the most similar and different pair in the dataset. 
+The Gower distance metric has now been computed for 311 rows of observations of this dataset.
+
+Following shows the *most similar* pair of observations in the dataset. 
 
 ```{r}
 gower_mat <- as.matrix(gower.dis)
@@ -549,6 +622,8 @@ hr2[which(gower_mat == min(gower_mat[gower_mat != min(gower_mat)]),   # min for 
           arr.ind = T)[1, ], ]
 
 ```
+
+Following shows the *most distinct* pair of observations in the dataset.
 
 ```{r}
 hr2[which(gower_mat == max(gower_mat[gower_mat != max(gower_mat)]),   # max for most different
@@ -559,20 +634,19 @@ hr2[which(gower_mat == max(gower_mat[gower_mat != max(gower_mat)]),   # max for 
 
 ### 7.2 VAT
 
-The Gower metric is a distance object
+VAT stands for "Visual Assessment of Clustering Tendency", which is a way to see whether the dataset is clusterable. Red indicates high similarity and blue indicates low similarity. The dataset may be able to be classified into 2 clusters. 
 
 ```{r}
 fviz_dist(gower.dis)
 ```
 
-
-### 7.1 Gower with PAM
+### 7.3 Gower with PAM
 
 K-means clustering method cannot be applied on the daisy function, and therefore the clustering algorithms typically used for Gower distance is Partitioning around Medoid (PAM) and Hierarchical clustering. 
 
 **Determining Best K**
 
-This section will perform PAM, however, the optimal will need to be determined. I will use silhouette width for this task, which is one of the internal cluster validation to see the quality of cluster. It has value ranges from -1 to 1, the higher the silhouette metric, the better the clustering. In fact, the overall silhouette metric of a k (number of clustering) is computed from all silhouette metric of individual observation within relevant cluster.  
+This section will perform PAM, however, the optimal K will need to be determined first. "K" is the optimal number of clusters clusterable for the dataset. I will use silhouette width to find out what the best K is. Silhouette is one of the internal cluster validation metrics to see the quality of clustering. It has value ranges from -1 to 1, the higher the silhouette metric, the better the clustering. In fact, the overall silhouette metric of a k (number of clustering) is computed using all silhouette metrics of each individual observation within a relevant cluster.  
 
 Applying for-loop for all silhouette width of each K:
 
@@ -588,7 +662,7 @@ for (i in 2:10) {
 sil_df
 
 ```
-Plot the graph:
+Plot the result:
 
 ```{R}
 
@@ -614,21 +688,22 @@ All observations in the dataset have been clustered into 2 clusters and each clu
 table(res.pam$clustering)
 
 ```
+
 **Add Cluster groups to Data**
 
-In this step, I add the clustering result into the dataset for further analysis. 
+In this step, the clustering results will be added into the dataset for further analysis. 
 
 ```{r}
 
 hr2_pam <- cbind(hr2, cluster = res.pam$clustering) %>% 
   mutate(cluster = as.factor(cluster)) %>% 
-  relocate(cluster, .before = MarriedID)
+  relocate(cluster, .before = Salary)
 
 ```
 
 **Analyse the result of PAM clustering**
 
-Following is the summary of variables from cluster 1:
+Following is the summary of variables from cluster 1, and this cluster is mainly describing current employees. 
 
 ```{r}
 cluster1_stat <- hr2_pam %>% 
@@ -637,7 +712,7 @@ cluster1_stat <- hr2_pam %>%
 summary(cluster1_stat[, -1]) 
 
 ```
-Following is the summary of variables from cluster 2:
+Following is the summary of variables from cluster 2, and this cluster is mainly describing employees who has left the company.  
 
 ```{r}
 cluster2_stat <- hr2_pam %>% 
@@ -647,39 +722,17 @@ summary(cluster2_stat[, -1])
 
 ```
 
-Following is the two medoids used to form the two clusters, and which might be helpful for understanding and interpreting result. 
+Following is the two medoids used to form the two clusters, and which might be helpful for understanding and interpreting result, or maybe not.
 
 ```{r}
 hr2[res.pam$medoids, ]
 
 ```
 
-**Visualisation with t-SNE**
+In summary, I have obtained knowledge that the dataset is best to be clustered into 2 clusters, one group is characterised by current employees and the other group is characterised by terminated employees. Two clusters are the best number of clusters (k) to be used to group all the observations in the data though more clusters can be selected. 
 
-```{r}
-# Make a tsne object with gower dis of the dataset
+Further exploration can be done to find out the in depth differences between the two clusters. However, I am not going to do that in this project because there are 5 big questions need to be answered in later section and numerous visualisation in these sections will analyse the data thoroughly. 
 
-tsne_object <- Rtsne(gower.dis, is_distance = T)
-
-# tsne df
-
-tsne_df <- tsne_object$Y %>% 
-  data.frame() %>% 
-  rename("X" = "X1",
-         "Y" = "X2") %>%     # Extract XY of tsne object
-  mutate(cluster = res.pam$clustering,
-         cluster = as.factor(cluster))
-  
-# Plot
-
-ggplot(tsne_df, aes(x = X, y = Y, color = cluster)) +
-  geom_point(alpha = 0.5, size = 3)  +
-  theme_classic() +
-  scale_color_brewer(palette = "Set1")
-
-
-```
-The plot shows two separated clusters that PAM was able to detect. These two clusters are not perfect with several contamination, but these are minority.   
 
 
 ## 8 BUSINESS TASKS
@@ -688,7 +741,8 @@ There are 5 business tasks given by the kaggle website for this dataset to answe
 
 ### 8.1 Is there any relationship between who a person works for and their performance score?
 
-**Correspondence Analysis (CA)** under the branch of Principal component methods from unsupervised machine learning will be applied to analyse the dataset to achieve the goal. 
+**1. Basic trends**  
+
 Selecting the variables "Manager name" and "performance score" from the dataset. 
  
 ```{r}
@@ -696,6 +750,7 @@ Selecting the variables "Manager name" and "performance score" from the dataset.
 df.task1 <- hr2 %>% 
   select(ManagerName, PerformanceScore) %>% 
   remove_rownames()
+
 ```
 
 Following are the managers in this dataset:
@@ -708,9 +763,7 @@ Following are "performance score" categories.
 ```{r}
 levels(df.task1$PerformanceScore)
 ```
-"PIP" means  performance improvement plan, it is a tool to help employee that do train employee with performance deficiencies. 
-
-**1. Basic trends** 
+"PIP" means  performance improvement plan, it is a tool to train employee with performance deficiencies. 
 
 Following plot the balloon plot for the dataset:
 
@@ -747,13 +800,13 @@ balloonplot(t(con.table),
 
 Basic trends:
 
-* Brannon Miller has the most employees that worked for him and exceeds performance requirement (top rant), but in the mean time, he has also the most employees that worked for him (4 persons) falling into PIP category.
+* Brannon Miller has the most employees who worked for him and exceeded performance requirement (the best rank "Exceeds"), but in the mean time, he has also the most employees who had worked for him (4 persons) fell into the PIP category.
 
-* Most employees are in the group of fully met. David Stanley, Elijiah Gray, Kelley Spirea, Ketsia Liebig, Kissy Sullivan are the top managers, they have the most subordinates who worked for them fall into this category, the numbers are 19, 18, 18, 18, and 18. Wbster Bultler is the 6th manager, he has 17 employees who worked for him fall into this category. 
+* Most employees are in the group of fully met. David Stanley, Elijiah Gray, Kelley Spirea, Ketsia Liebig, Kissy Sullivan are the top managers. They have the most subordinates who worked for them fall into this category, the numbers are 19, 18, 18, 18, and 18. Wbster Bultler is the 6th best manager, he has 17 employees who worked for him fell into the "Fully Meets" category. 
 
 **2. Data mining with Correspondence Analysis**
 
-Following initial the CA algorithm to find trend in the data. 
+The **Correspondence Analysis (CA)** under the branch of Principal component methods from unsupervised machine learning domain will be applied to analyse the dataset to achieve the goal.
 
 ```{r}
 # Algorithm
@@ -762,7 +815,7 @@ res.ca <- CA(df.task1, graph = F)
 
 ```
 
-Result shows that Chi-square test that has been calculated with a p-value of 0.249, and which fail the reject the null hypothesis and conclude that the association between two variables "Manager" and "Performance" score is statistically insignificant. 
+Result shows that Chi-square test that has been calculated has a p-value of 0.249, and which means a fail to reject the null hypothesis and conclude that the association between two variables "Manager" and "Performance" score is statistically insignificant. 
 
 ```{r}
 res.ca
@@ -784,7 +837,7 @@ g3 <- fviz_ca_biplot(res.ca,
                map = "rowprincipal", 
                arrows = c(T,T),
                repel = T) +
-  labs(title = "Asymmetric biplot (Optional)") +
+  labs(title = "Asymmetric biplot") +
   theme_get()
 
 top <- plot_grid(g1, g2)
@@ -803,17 +856,17 @@ plot_grid(top, g3, nrow = 2)
   * Whereas, Debra Houlihan and Jennifer Zamora are the closest to *"Needs Improvement"*.  
 
 * For asymmetric biplot, it is an alternative plot to help (optional). If an angle between two arrows (rows and columns) is accute (< 90oC), then there is strong association between the corresponding row and column. For examples:
-  * Brannon Miller has strong association with *Exceeds* and *PIP*    
-  * Lynn Daneault has strong association with *Exceeds* and *PIP*  
+  * Brannon Miller has strong association with *Exceeds* and *PIP*     
+  * Lynn Daneault has strong association with *Exceeds* and *PIP*   
 
 
 ### 8.2 What is the overall diversity profile of the organization?
 
 Having a team of employees from a diverse background can help a company to gain a variety of different perspectives, creativity, innovations and better employee engagement among employees. It will also help building a better company reputation and an increment in profit (Lovelytics 2020). 
 
-According to Lovelytics 2020, defining diversity of a company is to quantify the amount of "male" employees that is "white" in the company as "Non-diverse" and the remaining employees are classified as "diverse". 
+According to Lovelytics 2020, defining diversity of a company is to quantify the amount of "male" employees who is "white" in the company as "Non-diverse" and the remaining employees are classified as "diverse". 
 
-I will use this rule for our dataset that as long as an employee has following criteria will be classified as non-diverse and vice versa:
+I will use this rule for our dataset that as long as an employee has following criteria will be classified as non-diverse, or vice versa:
   * Has a "Male" sex,   
   * "No" Hispanic or Latino,     
   * is "White"   
@@ -928,17 +981,15 @@ plot_grid(top, g4,
 Insights:
 
 * The overall diversity is at a good level of 76%.    
-* Nearly half of the employees are female (43%) and make (57%).    
+* Nearly half of the employees are female (43%) and male (57%).    
 * Only 9% of employees are either Hispanic or Latino.      
-* 60% of employees are "white" employees, followed by 26% of Black or African American, 9 % of Asian, and less than 5% of other races.       
-
-
+* 60% of employees are "white" employees, followed by 26% of Black or African American, 9 % of Asian, and less than 5% of other races.      
 
 ### 8.3 What are our best recruiting sources if we want to ensure a diverse organization?
 
 Two techniques will be used: (1) Visual Exploration (2) Data mining
 
-**1. Visual Exploration**
+#### 8.3.1 Visual Exploration
 
 The top 3 recruiting sources for diversity are:
 
@@ -946,11 +997,11 @@ The top 3 recruiting sources for diversity are:
 2. Google Search, 81.6% of recruited employees were diverse (40 out of 49)    
 3. LinkedIn, 80.3% of recruited employees were diverse (40 out of 49)   
 
-Following 3 sources had the worst diversity score compared among these available options in the dataset:
+Following 3 sources had the worst diversity score compared among these available options in the dataset:  
 
-1. "Other", only 50% of employees were diverse, well below the average    
-2. "Employee Referral", only 51.6% of employees were diverse, below the average    
-3. "Indeed", 72.4% were diverse and is close to the average of 73.3%   
+1. "Other", only 50% of employees were diverse, well below the average     
+2. "Employee Referral", only 51.6% of employees were diverse, below the average     
+3. "Indeed", 72.4% were diverse and is close to the average of 73.3%    
 
 ```{r, fig.height=8, fig.width=8}
 
@@ -998,7 +1049,7 @@ ggplot(df8.3.2, aes(y = fct_reorder(RecruitmentSource, per), x = per, color = cu
 ```
 
 
-**2. Data Mining**
+#### 8.3.2 Multiple Correspondence Analysis (MCA)
 
 Several features that take part in this data mining are gender, whether the has Hispani or Latino origin, Race, and recruitment source. Recruitment source will be used as supplementary variable which will be used to understand the data without actually affecting the multiple correspondence analysis (MCA) result. 
 
@@ -1018,19 +1069,20 @@ fviz_screeplot(res.mca, addlabels = T)
 
 ```
 
-There are many principal components (Dimensions) are able to used for this analysis because many of the dimensions in the graph explain low and roughly the same variance. This scree plot does not have an obvious bend as well as all dimensions have eigenvalue of higher than 1 (10%) in this case. Usually eigenvalue of higher than 1 is used as a cut-off point to decide which dimensions to used in the factor map (biplot below).
+There are many principal components (Dimensions) are able to be used for this analysis because many of the dimensions in the graph explain low and roughly the same variance. This scree plot does not have an obvious bend as well as all dimensions have eigenvalue of higher than 1 (10%) in this case. Usually eigenvalue of higher than 1 is used as a cut-off point to decide which dimensions to use in the factor map (biplot below). 
 
-Though the scree plot is not good enough and may contains many error but for exploration purposes, some trends are detectable. 
+Though the results from scree plot showing that the principal components are not good enough at effectively reducing the dimensions, for example, high variability captured in the first few dimensions, but for exploration purposes, some trends might be detectable. 
 
 ```{r, fig.height=6, fig.width=6, warning=FALSE, message=FALSE}
 fviz_mca_biplot(res.mca, repel = T, palette = "jco")
 
 ```
+
 This biplot does not explain much of the variation based on Dim1 and Dim2. However, some trends we might be able to extract. For examples, if we want to hire a certain group of race we might be able to find where is the best of source.  
 
 * "White" employees might be the easiest to find in recruitment sources such as "Employee Referral", "Linkedin", "Google search", and "Indeed".  
 
-*  "Black or African American" is most associated with the recruitment source "Diversity Job Fair".  
+* "Black or African American" is most associated with the recruitment source "Diversity Job Fair".  
 
 * In Indeed, Google search and Linkedin are the sources that would most likely getting someone is not Hispanic or Latino origin.   
 
@@ -1041,7 +1093,7 @@ The goal of this question is to detect unequal pay among who does the same job. 
 
 Two parts in this analysis: (1) Visual exploration, (2) Regression
 
-**1. Visual Exploration**
+#### 8.4.1 Visual Exploration**
 
 Following are selected variables that are relevant to achieve the goal of this section. 
 
@@ -1053,7 +1105,7 @@ colnames(df8.4)
   
 ```
 
-```{r, fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+```{r, fig.height=12, fig.width=14, message=FALSE, warning=FALSE}
 
 # 1. Sex 
 g1 <- ggplot(df8.4, aes(x = Sex, y = Salary)) +
@@ -1062,7 +1114,7 @@ g1 <- ggplot(df8.4, aes(x = Sex, y = Salary)) +
   stat_summary(fun = "mean", shape = 4, geom = "point", size = 6, color = "blue") +
   theme_bw() +
   labs(title = "Gender", 
-       subtitle = "Roughly Equal Pay (Median & Mean) for Female and Male employee") +
+       subtitle = "Roughly Equal Pay (Median & Mean) for\n Female and Male employee") +
   theme(plot.title = element_text(face = "bold", hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5))
 # 2. Age
@@ -1080,7 +1132,7 @@ g2 <- ggplot(df8.4, aes(x = Age, y = Salary)) +
   theme(plot.title = element_text(face = "bold", hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5)) +
   labs(title = "Age",
-       subtitle = "Low correlation (Pearson) between Salary and Age") 
+       subtitle = "Low correlation (Pearson) between\n Salary and Age") 
 
 # 3. Hispanic/Latino
 g3 <- ggplot(df8.4, aes(x = HispanicLatino, y = Salary)) +
@@ -1091,7 +1143,7 @@ g3 <- ggplot(df8.4, aes(x = HispanicLatino, y = Salary)) +
   theme(plot.title = element_text(face = "bold", hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5)) +
   labs(title = "Hispanic / Latino Origin",
-       subtitle = "Fair Salary Distribution based on median and mean") 
+       subtitle = "Fair Salary Distribution \nbased on median and mean") 
 # 4. RaceDesc
 g4 <- ggplot(df8.4, aes(x = RaceDesc, y = Salary)) +
   geom_boxplot(outlier.shape = NA) + 
@@ -1113,7 +1165,7 @@ g5 <- ggplot(df8.4, aes(x = years_worked, y = Salary)) +
   theme(plot.title = element_text(face = "bold", hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5)) +
   labs(title = "Years Worked",
-       subtitle = "Almost zero correlation (Pearson) between years of working and Age") +
+       subtitle = "Almost zero correlation (Pearson) between \nyears of working and Age") +
   stat_regline_equation(label.x = 12, label.y = 150000, size = 4) +
   
   stat_cor(label.x = 12, label.y = 140000, size = 3,
@@ -1154,21 +1206,22 @@ plot_grid(top, g6,
 
 ```
 
+
 Insights gained: 
 
-* **Salary-Gender**: Roughly Equal Pay (Median & Mean) for Female and Male employees.    
-* **Salary-Age**: Low correlation (Pearson) between Salary and Age.    
-* **Salary-Hispanic/Latino**: Fair Salary Distribution based on median and mean.    
-* **Salary-Race**: Fair Salary Distribution based on overlapping of boxplots.    
-* **Salary-YearsWorked**: Almost zero correlation (Pearson) between years of working and Age.    
-* **Salary-Position-DiverseGroup**: No unequal pay detected
+* **Salary-Gender**: Roughly Equal Pay (Median & Mean) for Female and Male employees.     
+* **Salary-Age**: Low correlation (Pearson) between Salary and Age.     
+* **Salary-Hispanic/Latino**: Fair Salary Distribution based on median and mean.     
+* **Salary-Race**: Fair Salary Distribution based on overlapping of boxplots.     
+* **Salary-YearsWorked**: Almost zero correlation (Pearson) between years of working and Age.       
+* **Salary-Position-DiverseGroup**: No unequal pay detected.   
 
 
-**2. Regression**
+#### 8.4.2 Regression
 
-```{r}
-names(df8.4)
-```
+This will be an inferential regression model for inferential purposes. P-values will be computed to find out which numerical variables and categories among categorical variables are significantly related with the salary of employees. For example, if "Gender" is significantly related to salary with a P-value of less than 0.05, together with a high level beta coefficient estimates, it can be an statistical evidence that pay is unequal among different genders.
+
+Let's find out:
 
 ```{r}
 
@@ -1177,28 +1230,28 @@ summary(model_lm)
 
 ```
 
-From the result above, the output shows a really high adjusted R2 at about 93.9% with an overall P-value of less than 0.05.  It indicating this model explains much of the variation in the dataset and at least one of the variable has significant relationship with salary. 
+From the result above, the output shows a really high adjusted R2 at about 93.9% with an overall P-value of less than 0.05. It indicating this model explains much of the variation in the dataset and at least one of the variable has significant relationship with salary. 
 
 From the aid of this multiple linear regression model, 
 
-* I can see that position has significant relationship with Salary with a P-value of less  than 0.05.
+* I can see that position has significant relationship with Salary with a P-value of less than 0.05. It is reasonable because salary will be different for different positions because different skills are required.
 
 * There is no significant relation between Salary with Age, Sex, Hispanic-Latino origin, Race, and years_worked.
 
-Therefore, I can conclude that the company is paying her employees quite equally. 
+Therefore, I can conclude that the company is paying her employees equally, on statistical point of view. 
 
 
 
 ### 8.5 Can we predict who is going to terminate and who isn't? What level of accuracy can we achieve on this?
 
-To answer this question, one must apply Classification Algorithm from machine learning domain. It is clealy identifiable that it is a binary classification problem, for example, either "Yes" or "No", or "1" or "0", and in this case, is whether "Yes" the employee is leaving or "No" the employee is not leaving. 
+To answer this question, one must apply classification algorithm from supervised machine learning domain. It is clearly identifiable that it is a binary classification problem. For example, the responding variable has only either "Yes" or "No", or "1" or "0" values, and in this case, the outcome variable should describe whether "Yes" the employee is leaving or "No" the employee is not leaving (current). 
 
-There are a lot of relevant variables in the dataset, and the most relevant variable is "Termd", it tells us that has a particular employee in the dataset been terminated with a label of either 1 or 0 (Terminated or Not). It will be the core of the analysis, for both either visualisation or machine learning. 
+The most relevant variable is "Termd", it tells us that has a particular employee in the dataset been terminated with a label of stating either 1 or 0 (Terminated or Not). It will be the core of the analysis, for both either visualisation and machine learning. 
 
 
 #### 8.5.1 Visual Exploration
 
-In this section, lets study the characteristics who have left the company using a visual way. 
+In this section, let's study the characteristics of who have left the company using a visual way. 
 
 ```{r}
 df8.5 <-  hr2 %>% 
@@ -1322,7 +1375,6 @@ g6 <- ggplot(df, aes(x = myval)) +
 top <- plot_grid(g1, g2, g3, nrow = 1)
 middle <- plot_grid(g4, g5)
 
-
 grid.arrange(top, middle, g6, 
              ncol = 1,
              top = textGrob("Analysis of Past Terminated Employees\n",
@@ -1340,31 +1392,32 @@ grid.arrange(top, middle, g6,
 
 * In the dataset, 104 of employees have left and I will be using their data to predict who is going to be terminated.    
 
-* Most past employees have worked between 1 to 7 years, with picks at 1 year.   
+* Most past employees have worked between 1 to 7 years, and peaks at 1 year.   
 
-* Most of them voluntarily with top reasons between "another position", "unhappy" and "more money".   
-* 81 past employees have fully met the performance score, 8 were even exceeds the performance score. Only small amount of past employees needs improvement at 10, and 5 of PIP.   
+* Most of them left voluntarily with top reasons being "another position", "unhappy" and "more money".   
 
-* Most past employees are satisfied at their job at least 3 out of 5 rating.  
+* 81 past employees have fully met the performance score, 8 were even exceeded the performance score. Only small amount of past employees needs improvement (10 persons), and 5 persons for PIP.   
 
-* Most of them also do not late to work, many of them even highly engaging.   
+* Most past employees are satisfied with their job and rated at least 3 out of 5 rating.  
+
+* Most of them also do not late to work and many of them were even highly engaging.   
 
 * Their salaries are generally between 50k to 70k, and most of them do not have special project.   
 
 
 #### 8.5.2 Supervised Machine Learning
 
-The goal here is to make a model to correctly predict whether an employee is terminated or not, which is known as an binary classification problem. I will be using three relevant algorithms to achieve the task, I will use the training dataset to train these algorithms, use them to predict on the test set, and to check out who is the best classifier. The three candidates are:   
+The goal here is to make a model to correctly predict whether an employee is terminated or not, which is known as an binary classification problem. I will be using three relevant algorithms to achieve the task, I will use the training dataset to train these algorithms, use them to predict on the test set, and to check out who is the best classifier. The three candidates of this project are:   
 
 * 1. k-nearest Neighbors (KNN)   
 * 2. Support Vector Machine (SVM)  
 * 3. Random Forest  
 
-It is very important to set up an initial tune for this binary classification task, **this task is more interested to correctly predicting "1" than "0"**. 
+It is very important to set up an initial tune for this binary classification task: **this task is more interested to correctly predicting "1" than "0"**. 
 
-The understanding of the goal is very subtle here. The goal is to able to accurately predict, the current employees, who is going to terminate (voluntarily or involuntarily by valid or any other reasons). It means when I use the model, I am more interested in knowing who is leaving, and so I can plan a take-over of the shift or initiate recruitment. Therefore, I am more interested in correctly predicting "1" than "0". 
+The understanding of the goal is very subtle here. The goal is to be able to accurately predict, the current employees, who is going to terminate (voluntarily or involuntarily by valid or any other reasons). It means when I use the model, I am more interested in knowing who is leaving, and therefore I can plan a take-over of the person's shift or initiate recruitment. Hence, I am more interested in correctly predicting "1" than "0". 
 
-It is also indicating that the level of "sensitivity" (ability of correctly predicting 1) of a model is more important than "accuracy" and "specificity". Therefore, "sensitivity" will be my criteria at choosing the final algorithm, though I do hope optimally three of these metrics can be at the same, high level,
+It is indicating that the level of "sensitivity" (ability of correctly predicting 1) of a model is more important than "accuracy" and "specificity". Therefore, "sensitivity" will be my criteria at choosing the final algorithm, though I do hope optimally three of these metrics can be at the same level,
 
 
 **1. Feature Selection**
@@ -1381,6 +1434,29 @@ names(df8.5.2) %>%
   kable_styling(bootstrap_options = c("striped", "bordered"), full_width = F)
   
 ```
+
+After selecting the important variables, I am checking do data imbalance problem exists. Data imbalance problem is a kind of machine learning problem that if the categories in the responding variable do not have the same amount of observations. It would cause the overall accuracy rate become misleading because of skewness in the result of sensitivity (dominated and become higher) and specificity (become lower).   
+
+From the following result, it shows that the category "0" for who are the current employees has 207 rows (67%) and 33% for who has left the company labelled as "1".  
+
+```{r}
+
+hr2 %>% 
+  dplyr::select(Termd) %>% 
+  remove_rownames() %>% 
+  group_by(Termd) %>% 
+  summarise(row.count = n()) %>% 
+  ungroup() %>% 
+  mutate(total = sum(row.count),
+         percent = paste0(round(row.count/total*100), "%")) %>% 
+  kbl() %>% 
+  kable_styling(bootstrap_options = c("bordered", "striped"), full_width = F)
+
+```
+
+This dataset has a ratio of 67:33, and in general rule of thumb, we say a dataset is a highly imbalanced dataset if the imbalance ratio is 80:20 or 90:10. Therefore, I would not treat the imbalance here because the effect might be small. If treatment is required, there are several options include "under-sampling", "over-sampling", "both-sampling", or "synthetic sampling". You may check out my other project for these practices: [Loan EDA and Machine Learning Prediction](https://github.com/KAR-NG/Loan-EDA-and-Machine-Learning-Prediction/blob/main/loan.md#72-handling-data-imbalance).
+
+Let's move on with the 67:33 rules. If the final prediction power is too low and unacceptable, I will come back and apply these sampling techniques (The final prediction power is actually great).
 
 **2. Train-Test split**
 
@@ -1411,13 +1487,14 @@ table(test.set$Termd)
 
 ```
 
+
 **3. Classification algorithms**
 
 ##### (i) K-Nearest Neighbors (KNN)*
 
 When new observations are supplied, this algorithm will predict the outcome of these new observations by comparing them with their k-similar cases in the dataset. 
 
-The KNN algorithm starts by scaling the data, calculating euclidean distance measure between observations, then creating a principal component plot built by PC1 and PC2, all observations in the training set will then be on the plot in a clustered nature. 
+The KNN algorithm starts by scaling the data (train.set), calculating euclidean distance measure between observations, then creating a principal component plot built by PC1 and PC2, all observations in the training set will then be on the plot in a clustered nature. 
 
 Finally, it predicts the outcome of an unknown new data point by seeing the closest k-similar cases. For example, if K is set at 6 (number of nearest points), and if 5 nearest points are terminated employees, and 1 is current employee, the new data point will be determined by the most votes which is to be classified as a terminated employees.
 
@@ -1435,8 +1512,8 @@ model_knn <- train(Termd ~., train.set,
 
 The model will automatically use the K that has the highest accuracy (doesn't mean it is good, I will tune it for best sensitivity and specificity). Following graph shows the accuracy rate of different number of K-neighbors detected from the KNN model. 
 
-```{r}
-set.seed(122)
+```{r, fig.width=9}
+set.seed(123)
 
 # df
 knn_model_df <- model_knn$results %>% select(k, Accuracy) %>%
@@ -1447,14 +1524,19 @@ knn_model_df <- model_knn$results %>% select(k, Accuracy) %>%
 ggplot(knn_model_df, aes(x = k, y = Accuracy)) +
   geom_point(color = "blue") +
   geom_path(color = "blue") +
-  geom_vline(xintercept = 15, linetype = 2) +
-  annotate(geom = "text", x = 31, y = 0.67, 
+  geom_vline(xintercept = 35, linetype = 2) +
+  annotate(geom = "text", x = 47, y = 0.67, 
            label = "Best K: 15 (model_knn$bestTune)",
            size = 3) +
   theme_classic() +  
-  geom_text_repel(aes(label = highest)) +
   labs(title = "cross-validation")
 
+```
+
+The best K is 35 because it has the highest accuracy rate. 
+
+```{r}
+model_knn$bestTune
 ```
 
 Looking at the results on confusion matrix:
@@ -1466,11 +1548,11 @@ predicted.classes.knn <- model_knn %>% predict(test.set)
 confusionMatrix(predicted.classes.knn, test.set$Termd, positive = "1")
 
 ```
-The overall accuracy is 74.2%, but the most interested metric "sensitivity" is only 29%. Sensitivity is the proportion of terminated staffs being correctly identified as terminated. The specificity, the chance of getting who is not terminated is very high at 96%. 
+The overall accuracy is *73%*, but the most interested metric "sensitivity" is only *22.6%*. Sensitivity is the proportion of terminated staffs being correctly identified as terminated. The specificity, the chance of getting who is not terminated is very high at *98%*. 
 
-The probability used to classify an observation point was at the default level of 0.50 (50%), this level generally works well. However, the probability can be adjusted by ROC to increase the "sensitivity" rate.
+The probability used to classify an observation point was at the default level of 0.50 (50%), this level generally works well but it is not at the current moment in our case. However, the probability can be adjusted by ROC (Receiver Operating Characteristic) curve to increase/adjust the "sensitivity" rate.
 
-ROC curve below will be used to tune the model by searching the best probability cut off point. The ideal cut-off point should have an increment of sensitivity at the expense of "1 - specificity", or known as having a higher level of "true positive rate" in the expense of "false positive rate", and finally both metric achieve at a similar level.
+ROC curve below will be used to tune the model by searching the best probability cut-off point. The ideal cut-off point should have an increment of sensitivity at the expense of "1 - specificity", or known as having a higher level of "true positive rate" in the expense of "false positive rate", and finally both metrics achieve at a similar level. The "false positive rate" is also equal to "1 minus Specificity" or "Specificity" with an inverse x-axis.
 
 ```{r}
 
@@ -1481,9 +1563,7 @@ predicted.classes.knn.prob <- model_knn %>%
 res.roc.knn <- roc(test.set$Termd, 
                    predicted.classes.knn.prob[,2]) # use col "1" for prob of being terminated 
 
-# Plot the grah
-
-library(pROC)
+# Plot the graph
 
 plot.roc(res.roc.knn, 
          print.auc = T,
@@ -1494,9 +1574,9 @@ plot.roc(res.roc.knn,
          main = "ROC - Decision Tree")
 
 ```
-The best probability is 0.3. 
+The best probability is 0.329. 
 
-The final step will be predicting on an unknown dataset (data without label) however it is not available in this project. So let's pretend the test set is an unknown dataset and I predict on it using KNN and probability threshold of 0.3. It is a manual procedure and require a bit of codes to achieve it. 
+The final step will be predicting on an unknown dataset (data without label) however it is not available in this project. So let's pretend the test set is an unknown dataset and I predict on it using KNN and probability threshold of 0.329. It is a manual procedure and require a bit of codes to achieve it. 
 
 ```{r}
 # Predict on the test set, it is essential the same code as the previous code chunk before, but duplicating there to help digesting the workflow.  
@@ -1509,7 +1589,7 @@ predicted.classes.knn.prob2 <- model_knn %>%
 knn_finaldf <- predicted.classes.knn.prob2 %>% 
   dplyr::select("1") %>% 
   rename("termd" = "1") %>% 
-  mutate(outcome_0.3prob = ifelse(termd > 0.3, "1", "0"),
+  mutate(outcome_0.3prob = ifelse(termd > 0.329, "1", "0"),
          outcome_0.3prob = as.factor(outcome_0.3prob))
 
 
@@ -1521,28 +1601,30 @@ confusionMatrix(knn_finaldf$outcome_0.3prob,
 
 ```
 
-Now, when I use the KNN model to make the class prediction again at a new probability threshold of 0.3 instead of 5:
+Now, when I use the KNN model to make the class prediction again at a new probability threshold of 0.329 instead of 0.5:
 
-* Accuracy rate drops slightly from 74% to 70%  
+* Accuracy rate increases slightly from 73% to 77.4%  
 
-* Sensitivity rate increase drastically from 29% to 71%, (now it is more accurate to predict who is leaving)    
+* Sensitivity rate increase drastically from 29% to 100%, (now it is more accurate to predict who is leaving)    
 
-* Specificity rate drops from 97% to 69%. It was expensed to optimise sensitivity. Specificity is to predict who is not leaving and is not the most interest metric in this project.  
+* Specificity rate drops from 98% to 66%. It was expense to optimise sensitivity. Specificity is to predict who is not leaving and is not the most interest metric in this project.  
 
+Two other algorithms will be fitted subsequently and compared to these results of KNN.
 
 ##### (ii) Support Vector Machine 
 
-KNN was a type of classification algorithm that has its own approach at classifying observations, but when compared to support vector machine (SVM), the approach is very different. 
+KNN was a type of classification algorithm that has its own approach at classifying observations, but when compared to support vector machine (SVM), SVM applies a very different approach. 
 
 Instead of looking at "how are the nearest neighbors are doing", SVM will identify the optimal decision boundary that separates data points from different groups, so that one group/class of data points is in one side of the boundary, and the other group/class of data points are in other side. Then, SVM will make predictions of new data points based on this boundary. 
 
 There are multiple available decision boundary available when finding the best one, SVM will choose the optimal one that maximises a distance that is furthest away to points in either category. This distance is called **margin**, and points that fall on the margin are known as **supporting vectors**.
 
-SVM can handle both linear and non-linear boundaries, and typically non-linear in real life data. Therefore, I will be using a relevant SVM algorithm for non-linear classification, it can be either polynomial kernel or radial kernel functions. Actually, I will be only showing and using polynomial kernel because it has a better predictive power than radial kernel from a test I have run before publishing this project. 
+SVM can handle both linear and non-linear boundaries, and typically, real life data are non-linear. Therefore, I will be using a relevant SVM algorithm for non-linear classification, it can be either polynomial kernel or radial kernel functions. Actually, I will be only showing and using polynomial kernel because it has a better predictive power than radial kernel (I have tested it and remove the section to cut short the project).
 
 Fitting the Polynomial kernel SVM algorithm:
 
 ```{r, warning=FALSE, message=FALSE}
+
 set.seed(123)
 
 model_svmPoly <- train(Termd~., data = train.set,
@@ -1553,7 +1635,7 @@ model_svmPoly <- train(Termd~., data = train.set,
 
 ```
 
-The best tune for the *Cost*(c) of this radial SVM is 4 and will be automatically picked in the algorithm when making prediction (next step).
+Following show the best tune for the *Cost*(c) of this radial SVM and will be automatically picked in the algorithm when making prediction (next step).
 
 ```{r}
 model_svmPoly$bestTune
@@ -1565,36 +1647,144 @@ Making predictions on the test set, and following are the results:
 ```{r}
 pred_svmPoly <- model_svmPoly %>% predict(test.set)
 table(pred_svmPoly)
+
 ```
-The model predicted 65 employees from the test set are current employees (0) and 28 have left (1). I have actually the actual data that whether the predictions on each employee by the SVM model on the test set is correct or incorrect, and it will be displayed in confusion matrix below:
+The model predicted 63 employees from the test set are current employees (0) and 30 have left (1). I have actually the actual data that whether the predictions on each employee by the SVM model are correct or incorrect, and it will be displayed in confusion matrix below:
 
 ```{r}
 confusionMatrix(pred_svmPoly, test.set$Termd, positive = "1")
 
 ```
 
-ROC doesn't work for SVM-radial as there is no predicted probabilities of each observation points available to create the ROC curve. Therefore, the results above will be the final result of Radial-SVM and as the reference when predicting new unknown dataset. 
+ROC doesn't work for SVM-radial as there is no predicted probabilities of each observation points available to create the ROC curve. Therefore, the results above will be the final result of Radial-SVM.
 
-However, the results are pretty flying colour.   
+The predictive power of Support Vector Machine is actually very well.   
 
-* The accuracy is 92%, which is 22% more accurate than KNN     
-* The sensitivity and specificity are quite close to each other, and therefore the accuracy   rate is not miss-leading    
-* The sensitivity is very good at 83.4%, and it is our metric of interest    
-* The specificity is very high at 96.8%  
+* The accuracy is 95%   
+* The sensitivity is very good at 90%, and it is our metric of interest    
+* The specificity is very high at 97%    
+* The sensitivity and specificity are quite close to each other, and therefore the accuracy rate is not miss-leading  
 
 
 ##### (iii) Random Forest
 
 ![](https://raw.githubusercontent.com/KAR-NG/hr/main/pic1_forest.jpg)
 
+Random forest is built by many different decision trees. I will be building a random forest that has 500 trees. Each tree is a model itself trained by a randomly sampled sub-dataset drawn from the training set (Bootstrap aggregating, Bagging) and each tree will have a randomly assigned group of variables to split on during each split (bootstrap sampling).
+
+```{r}
+set.seed(123)
+
+model_rf <- train(Termd~., data = train.set,
+                  method = "rf",
+                  trControl = trainControl(method = "repeatedcv",
+                                           number = 10,
+                                           repeats = 3),
+                  allowParallel = T,
+                  importance = T)
+
+```
+
+Following shows the optimal number of predictors ((mtry) randomly sampled as candidates at each split. The best mtry will be the one that maximise the accuracy.
+
+```{r}
+plot(model_rf)
+```
+The optimal mtry is 45. 
+
+```{r}
+model_rf$bestTune
+```
+
+Following shows the description of the final random forest model that will be used automatically to make prediction.
+
+```{r}
+model_rf$finalModel
+
+```
+The random forest is able to produce us an "Important Plot" that telling which variables are very important when making the prediction. "Years_works" is well ahead of all other variables, and it is saying that this variable is very related when predicting whether an employee will leave a company. Important to note that it is not saying that the longer years of work, an employee will more likely to leave the company, it is only stating that the variable is important and if certain years of working is achieved such as 1 year or 2 years, an employee may leave at a higher chance. 
+
+```{r, fig.height=5}
+plot(varImp(model_rf),top = 20)
+
+```
+
+Following graph completes the first round of random forest prediction with probability cut-off point at 0.50. The result is amazing, it has a accuracy rate of 96%, 98% rate of specificity, but slightly lower of sensitivity at 90.3%. I will now tune the probability cut-off point and see what level is the best. 
+
+```{r}
+pred_rf <- model_rf %>% predict(test.set)
+
+confusionMatrix(pred_rf, test.set$Termd, positive = "1")
+
+```
+Applying the technique of ROC-AUC, there are two best probability cut-off points! It might be a rare case. I will pick 0.318 because both sensitivity 97% and 93.5% are the most balanced. 
+
+```{r}
+
+pred_rf_prob <- model_rf %>% predict(test.set, type = "prob")
+
+res.roc.rf <- roc(test.set$Termd,
+                  pred_rf_prob[, 2])
+
+plot.roc(res.roc.rf, 
+         print.thres = T, 
+         print.auc = T,
+         auc.polygon = T,
+         auc.polygon.col = "green")
+
+```
+
+Making prediction again using the test set but with 0.405 probability cut off point.
+
+```{r}
+
+rf.df <- pred_rf_prob %>% 
+      dplyr::select("1") %>% 
+  rename("termd" = "1") %>% 
+  mutate(outcome_0.3prob = ifelse(termd > 0.318, "1", "0"),
+         outcome_0.3prob = as.factor(outcome_0.3prob))
+
+confusionMatrix(rf.df$outcome_0.3prob,
+                test.set$Termd, 
+                positive = "1")
+  
+
+```
+
+In a conclusion for this section, Random Forest with 0.405 probability cut-off point is the best algorithm to be used to make the prediction because it has the second highest accuracy rate at 93.5% but a more balanced ratio between sensitivity and specificity and therefore the overall accuracy rate is more representative and not misleading. One can definitely pick the more extreme predictive power of KNN model if it is more desired, it has 100% accuracy rate but a low specificity rate of 66%. 
 
 
 
+## 9 CONCLUSION
+
+**1. Is there any relationship between who a person works for and their performance score?**
+
+There is not enough statistical evidence to prove that a manger would significantly affects the performance of an employee, supported this statement by Chi-Square test at a P-value of 0.249. However, though statistically insignificant, balloon-plot and correspondence analysis are able to detect some trends. Brannon Miller is the best manager in term of the numbers of subordinates with top performance rank "Exceeds" however he has also the most subordinates who are from the PIP group. David Stanley, Kissy Sullivan, Simon Roup, and Ketsia Liebig are the best managers at training staffs to reach the second highest performance score of "Fully Meets".  
+
+**2. What is the overall diversity profile of the organization?**
+
+The company has an good level of overall diversity at 76%. The diversity is defined in a way that as long as employee is "not white" and "not male", the employee is considered an employee from "diverse" background (Lovelytics 2020). For example, a white female employee is an employee from "diverse" background. 43% of the employees are female and 40% are non-white employees. However, there is only 9% of employees are either Hispanic or Latino.
+
+**3. What are our best recruiting sources if we want to ensure a diverse organization?**
+
+Diversity job fair is the best, 100% of employees recruited from Diversity Job Fair are from a diverse background. The second and third best recruiting source are Google Search and Linkedin, both at 81.6% and 80.3%. The worst is "Other" and "Employee Referral" at 50% and 51.7%.  
+
+**4. Are there areas of the company where pay is not equitable?**
+
+Applying regression model for inferential purposes, there is no statistical evidence to prove that there is unequal pay in the company other than the type of positions in the company. The important variable Age, Sex, Hispanic-Latino background, Race, and even years of working do not have statistical relationship with salary, all of than had a P-value of higher than 0.05.
+
+**5. Can we predict who is going to terminate and who isn't? What level of accuracy can we achieve on this**
+
+In the analysis, most of the employees who left the company has high performance score of "Fully Meets", they were even satisfied with their job. Most of them were also highly engaging, did not late to work and could be a new or an old employees. Their top reasons were "change to other position", "unhappy", and "more money". 
+
+Polynomial kernel Support Vactor Machine (SVM), ROC-AUC tuned K-Nearest Neighbor (KNN), and Random Forest models were tested and the result shows Random Forest model with 0.405 probability cut-off point is the best algorithm for us to make prediction for who is leaving the company. It has a reliable overall accuracy rate at 95.6%, sensitivity rate of 93.5% (the metric that we are most interested in) and specificity rate of 96.9%.
 
 
 
-## REFERENCE
+**Thank you for reading**
 
+
+## 10 REFERENCE
 
 Clustering and dimensionality reduction techniques on the Berlin Airbnb data and the problem of mixed data (n.d.),viewed 15 May 2022 https://rstudio-pubs-static.s3.amazonaws.com/579984_6b9efbf84ee24f00985c29e24265d2ba.html 
 
@@ -1603,6 +1793,8 @@ Forest picture in section 8.5.2, credit: Michael Thirnbeck 2010,   https://www.f
 KASSAMBARA A 2017, *Practical Guide To Principal Component Methods in R*, Edition 1, sthda.com
 
 Lovelytics 2020, *HR Diversity Scorecard*, viewed 15 May 2022, https://www.youtube.com/watch?v=oaLp5eBi6E8
+
+Nancy Chelaru 2019, *Factor analysis of mixed data*, viewed 4 June 2022, https://rpubs.com/nchelaru/famd
 
 Rich Huebner 2020, *Human Resources Data Set*, viewed 2 May 2022, https://www.kaggle.com/datasets/rhuebner/human-resources-data-set?resource=download 
 
