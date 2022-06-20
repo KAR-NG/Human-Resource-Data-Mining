@@ -40,12 +40,14 @@ Kar Ng
         diverse
         organization?](#83-what-are-our-best-recruiting-sources-if-we-want-to-ensure-a-diverse-organization)
         -   [8.3.1 Visual Exploration](#831-visual-exploration)
-        -   [8.3.2 Multiple Correspondence Analysis
-            (MCA)](#832-multiple-correspondence-analysis-mca)
+        -   [8.3.2 Statistical Analysis](#832-statistical-analysis)
+        -   [8.3.3 Multiple Correspondence Analysis
+            (MCA)](#833-multiple-correspondence-analysis-mca)
     -   [8.4 Are there areas of the company where pay is not
         equitable?](#84-are-there-areas-of-the-company-where-pay-is-not-equitable)
         -   [8.4.1 Visual Exploration\*\*](#841-visual-exploration)
-        -   [8.4.2 Regression](#842-regression)
+        -   [8.4.2 Statistical Analysis](#842-statistical-analysis)
+        -   [8.4.3 Regression](#843-regression)
     -   [8.5 Can we predict who is going to terminate and who isn’t?
         What level of accuracy can we achieve on
         this?](#85-can-we-predict-who-is-going-to-terminate-and-who-isnt-what-level-of-accuracy-can-we-achieve-on-this)
@@ -83,7 +85,8 @@ in the company are female and 40% are employees from diverse
 backgrounds. The company recruits employees from 8 sources and diversity
 job fair is the best choice if the company is keen to hire an employee
 from a diverse background, and employee-referral being the worst source
-at hiring an employee with diverse background.
+at hiring an employee with diverse background (Chi-squared test for
+independence: x-squared = 21.989, df = 5, p-value = 0.0005).
 
 Inferential regression was applied to study the relationships between
 salary and numerous factors (variables) that would potentially relates
@@ -605,42 +608,42 @@ glimpse(hr)
 
     ## Rows: 311
     ## Columns: 36
-    ## $ Employee_Name              <chr> "Adinolfi  Wilson  K", "Ait Sidi  Karthikey~
-    ## $ EmpID                      <int> 10026, 10084, 10196, 10088, 10069, 10002, 1~
-    ## $ MarriedID                  <int> 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0~
-    ## $ MaritalStatusID            <int> 0, 1, 1, 1, 2, 0, 0, 4, 0, 2, 1, 1, 2, 0, 2~
-    ## $ GenderID                   <int> 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1~
-    ## $ EmpStatusID                <int> 1, 5, 5, 1, 5, 1, 1, 1, 3, 1, 5, 5, 1, 1, 5~
-    ## $ DeptID                     <int> 5, 3, 5, 5, 5, 5, 4, 5, 5, 3, 5, 5, 3, 5, 5~
-    ## $ PerfScoreID                <int> 4, 3, 3, 3, 3, 4, 3, 3, 3, 3, 3, 3, 4, 3, 3~
-    ## $ FromDiversityJobFairID     <int> 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0~
-    ## $ Salary                     <int> 62506, 104437, 64955, 64991, 50825, 57568, ~
-    ## $ Termd                      <int> 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1~
-    ## $ PositionID                 <int> 19, 27, 20, 19, 19, 19, 24, 19, 19, 14, 19,~
-    ## $ Position                   <chr> "Production Technician I", "Sr. DBA", "Prod~
-    ## $ State                      <chr> "MA", "MA", "MA", "MA", "MA", "MA", "MA", "~
-    ## $ Zip                        <int> 1960, 2148, 1810, 1886, 2169, 1844, 2110, 2~
-    ## $ DOB                        <chr> "7/10/1983", "5/05/1975", "09/19/88", "09/2~
-    ## $ Sex                        <chr> "M ", "M ", "F", "F", "F", "F", "F", "M ", ~
-    ## $ MaritalDesc                <chr> "Single", "Married", "Married", "Married", ~
-    ## $ CitizenDesc                <chr> "US Citizen", "US Citizen", "US Citizen", "~
-    ## $ HispanicLatino             <chr> "No", "No", "No", "No", "No", "No", "No", "~
-    ## $ RaceDesc                   <chr> "White", "White", "White", "White", "White"~
-    ## $ DateofHire                 <chr> "7/05/2011", "3/30/2015", "7/05/2011", "1/0~
-    ## $ DateofTermination          <chr> "", "6/16/2016", "9/24/2012", "", "9/06/201~
-    ## $ TermReason                 <chr> "N/A-StillEmployed", "career change", "hour~
-    ## $ EmploymentStatus           <chr> "Active", "Voluntarily Terminated", "Volunt~
-    ## $ Department                 <chr> "Production       ", "IT/IS", "Production  ~
-    ## $ ManagerName                <chr> "Michael Albert", "Simon Roup", "Kissy Sull~
-    ## $ ManagerID                  <int> 22, 4, 20, 16, 39, 11, 10, 19, 12, 7, 14, 2~
-    ## $ RecruitmentSource          <chr> "LinkedIn", "Indeed", "LinkedIn", "Indeed",~
-    ## $ PerformanceScore           <chr> "Exceeds", "Fully Meets", "Fully Meets", "F~
-    ## $ EngagementSurvey           <dbl> 4.60, 4.96, 3.02, 4.84, 5.00, 5.00, 3.04, 5~
-    ## $ EmpSatisfaction            <int> 5, 3, 3, 5, 4, 5, 3, 4, 3, 5, 4, 3, 4, 4, 5~
-    ## $ SpecialProjectsCount       <int> 0, 6, 0, 0, 0, 0, 4, 0, 0, 6, 0, 0, 5, 0, 0~
-    ## $ LastPerformanceReview_Date <chr> "1/17/2019", "2/24/2016", "5/15/2012", "1/0~
-    ## $ DaysLateLast30             <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0~
-    ## $ Absences                   <int> 1, 17, 3, 15, 2, 15, 19, 19, 4, 16, 12, 15,~
+    ## $ Employee_Name              <chr> "Adinolfi  Wilson  K", "Ait Sidi  Karthikey…
+    ## $ EmpID                      <int> 10026, 10084, 10196, 10088, 10069, 10002, 1…
+    ## $ MarriedID                  <int> 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0…
+    ## $ MaritalStatusID            <int> 0, 1, 1, 1, 2, 0, 0, 4, 0, 2, 1, 1, 2, 0, 2…
+    ## $ GenderID                   <int> 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1…
+    ## $ EmpStatusID                <int> 1, 5, 5, 1, 5, 1, 1, 1, 3, 1, 5, 5, 1, 1, 5…
+    ## $ DeptID                     <int> 5, 3, 5, 5, 5, 5, 4, 5, 5, 3, 5, 5, 3, 5, 5…
+    ## $ PerfScoreID                <int> 4, 3, 3, 3, 3, 4, 3, 3, 3, 3, 3, 3, 4, 3, 3…
+    ## $ FromDiversityJobFairID     <int> 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0…
+    ## $ Salary                     <int> 62506, 104437, 64955, 64991, 50825, 57568, …
+    ## $ Termd                      <int> 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1…
+    ## $ PositionID                 <int> 19, 27, 20, 19, 19, 19, 24, 19, 19, 14, 19,…
+    ## $ Position                   <chr> "Production Technician I", "Sr. DBA", "Prod…
+    ## $ State                      <chr> "MA", "MA", "MA", "MA", "MA", "MA", "MA", "…
+    ## $ Zip                        <int> 1960, 2148, 1810, 1886, 2169, 1844, 2110, 2…
+    ## $ DOB                        <chr> "7/10/1983", "5/05/1975", "09/19/88", "09/2…
+    ## $ Sex                        <chr> "M ", "M ", "F", "F", "F", "F", "F", "M ", …
+    ## $ MaritalDesc                <chr> "Single", "Married", "Married", "Married", …
+    ## $ CitizenDesc                <chr> "US Citizen", "US Citizen", "US Citizen", "…
+    ## $ HispanicLatino             <chr> "No", "No", "No", "No", "No", "No", "No", "…
+    ## $ RaceDesc                   <chr> "White", "White", "White", "White", "White"…
+    ## $ DateofHire                 <chr> "7/05/2011", "3/30/2015", "7/05/2011", "1/0…
+    ## $ DateofTermination          <chr> "", "6/16/2016", "9/24/2012", "", "9/06/201…
+    ## $ TermReason                 <chr> "N/A-StillEmployed", "career change", "hour…
+    ## $ EmploymentStatus           <chr> "Active", "Voluntarily Terminated", "Volunt…
+    ## $ Department                 <chr> "Production       ", "IT/IS", "Production  …
+    ## $ ManagerName                <chr> "Michael Albert", "Simon Roup", "Kissy Sull…
+    ## $ ManagerID                  <int> 22, 4, 20, 16, 39, 11, 10, 19, 12, 7, 14, 2…
+    ## $ RecruitmentSource          <chr> "LinkedIn", "Indeed", "LinkedIn", "Indeed",…
+    ## $ PerformanceScore           <chr> "Exceeds", "Fully Meets", "Fully Meets", "F…
+    ## $ EngagementSurvey           <dbl> 4.60, 4.96, 3.02, 4.84, 5.00, 5.00, 3.04, 5…
+    ## $ EmpSatisfaction            <int> 5, 3, 3, 5, 4, 5, 3, 4, 3, 5, 4, 3, 4, 4, 5…
+    ## $ SpecialProjectsCount       <int> 0, 6, 0, 0, 0, 0, 4, 0, 0, 6, 0, 0, 5, 0, 0…
+    ## $ LastPerformanceReview_Date <chr> "1/17/2019", "2/24/2016", "5/15/2012", "1/0…
+    ## $ DaysLateLast30             <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+    ## $ Absences                   <int> 1, 17, 3, 15, 2, 15, 19, 19, 4, 16, 12, 15,…
 
 Randomly sample 10 rows of data from the table:
 
@@ -784,29 +787,29 @@ glimpse(hr2)
 
     ## Rows: 311
     ## Columns: 23
-    ## $ Salary               <int> 62506, 104437, 64955, 64991, 50825, 57568, 95660,~
-    ## $ Termd                <int> 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0~
-    ## $ Position             <chr> "Production Technician I", "Sr. DBA", "Production~
-    ## $ State                <chr> "MA", "MA", "MA", "MA", "MA", "MA", "MA", "MA", "~
-    ## $ DOB                  <chr> "7/10/1983", "5/05/1975", "09/19/88", "09/27/88",~
-    ## $ Sex                  <chr> "M ", "M ", "F", "F", "F", "F", "F", "M ", "F", "~
-    ## $ MaritalDesc          <chr> "Single", "Married", "Married", "Married", "Divor~
-    ## $ CitizenDesc          <chr> "US Citizen", "US Citizen", "US Citizen", "US Cit~
-    ## $ HispanicLatino       <chr> "No", "No", "No", "No", "No", "No", "No", "No", "~
-    ## $ RaceDesc             <chr> "White", "White", "White", "White", "White", "Whi~
-    ## $ DateofHire           <chr> "7/05/2011", "3/30/2015", "7/05/2011", "1/07/2008~
-    ## $ DateofTermination    <chr> "", "6/16/2016", "9/24/2012", "", "9/06/2016", ""~
-    ## $ TermReason           <chr> "N/A-StillEmployed", "career change", "hours", "N~
-    ## $ EmploymentStatus     <chr> "Active", "Voluntarily Terminated", "Voluntarily ~
-    ## $ Department           <chr> "Production       ", "IT/IS", "Production       "~
-    ## $ ManagerName          <chr> "Michael Albert", "Simon Roup", "Kissy Sullivan",~
-    ## $ RecruitmentSource    <chr> "LinkedIn", "Indeed", "LinkedIn", "Indeed", "Goog~
-    ## $ PerformanceScore     <chr> "Exceeds", "Fully Meets", "Fully Meets", "Fully M~
-    ## $ EngagementSurvey     <dbl> 4.60, 4.96, 3.02, 4.84, 5.00, 5.00, 3.04, 5.00, 4~
-    ## $ EmpSatisfaction      <int> 5, 3, 3, 5, 4, 5, 3, 4, 3, 5, 4, 3, 4, 4, 5, 4, 3~
-    ## $ SpecialProjectsCount <int> 0, 6, 0, 0, 0, 0, 4, 0, 0, 6, 0, 0, 5, 0, 0, 0, 0~
-    ## $ DaysLateLast30       <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0~
-    ## $ Absences             <int> 1, 17, 3, 15, 2, 15, 19, 19, 4, 16, 12, 15, 9, 7,~
+    ## $ Salary               <int> 62506, 104437, 64955, 64991, 50825, 57568, 95660,…
+    ## $ Termd                <int> 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0…
+    ## $ Position             <chr> "Production Technician I", "Sr. DBA", "Production…
+    ## $ State                <chr> "MA", "MA", "MA", "MA", "MA", "MA", "MA", "MA", "…
+    ## $ DOB                  <chr> "7/10/1983", "5/05/1975", "09/19/88", "09/27/88",…
+    ## $ Sex                  <chr> "M ", "M ", "F", "F", "F", "F", "F", "M ", "F", "…
+    ## $ MaritalDesc          <chr> "Single", "Married", "Married", "Married", "Divor…
+    ## $ CitizenDesc          <chr> "US Citizen", "US Citizen", "US Citizen", "US Cit…
+    ## $ HispanicLatino       <chr> "No", "No", "No", "No", "No", "No", "No", "No", "…
+    ## $ RaceDesc             <chr> "White", "White", "White", "White", "White", "Whi…
+    ## $ DateofHire           <chr> "7/05/2011", "3/30/2015", "7/05/2011", "1/07/2008…
+    ## $ DateofTermination    <chr> "", "6/16/2016", "9/24/2012", "", "9/06/2016", ""…
+    ## $ TermReason           <chr> "N/A-StillEmployed", "career change", "hours", "N…
+    ## $ EmploymentStatus     <chr> "Active", "Voluntarily Terminated", "Voluntarily …
+    ## $ Department           <chr> "Production       ", "IT/IS", "Production       "…
+    ## $ ManagerName          <chr> "Michael Albert", "Simon Roup", "Kissy Sullivan",…
+    ## $ RecruitmentSource    <chr> "LinkedIn", "Indeed", "LinkedIn", "Indeed", "Goog…
+    ## $ PerformanceScore     <chr> "Exceeds", "Fully Meets", "Fully Meets", "Fully M…
+    ## $ EngagementSurvey     <dbl> 4.60, 4.96, 3.02, 4.84, 5.00, 5.00, 3.04, 5.00, 4…
+    ## $ EmpSatisfaction      <int> 5, 3, 3, 5, 4, 5, 3, 4, 3, 5, 4, 3, 4, 4, 5, 4, 3…
+    ## $ SpecialProjectsCount <int> 0, 6, 0, 0, 0, 0, 4, 0, 0, 6, 0, 0, 5, 0, 0, 0, 0…
+    ## $ DaysLateLast30       <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…
+    ## $ Absences             <int> 1, 17, 3, 15, 2, 15, 19, 19, 4, 16, 12, 15, 9, 7,…
 
 ### 5.2 New Variable: Age
 
@@ -893,27 +896,27 @@ employee in the dataset.
 hr2$years_worked
 ```
 
-    ##   [1] 10.9  1.2  1.2 14.4  5.2 10.4  7.6  8.7 12.9  7.4  6.0  4.5  7.6 10.3  4.5
-    ##  [16]  6.5  5.9 11.2  1.2  8.9 10.2  8.8  7.9 11.2  3.2  2.0  7.3  0.9  1.2 13.6
-    ##  [31]  7.7  8.6  3.0 10.3 11.2 10.8  6.4  8.6  8.2  5.9  7.8  7.7  5.8  8.1  8.9
-    ##  [46] 10.1  4.4 10.7  9.8  1.6  1.1  5.9  8.9  5.2 11.9 13.4  7.4  7.2  5.9  7.6
-    ##  [61]  8.1  7.6  9.9 10.6  3.9  5.1 10.4  7.7  4.6  7.9  5.3  8.1 10.3  9.4 10.2
-    ##  [76]  7.4  8.4 11.4  7.7 12.1  6.2  7.6  8.2  7.9  6.5  4.0  2.1  7.9  8.3  4.5
-    ##  [91]  7.1  7.2 10.4  2.1  1.8  3.9 11.2 13.4 10.8 12.1  7.2 11.1  7.2  5.0  1.2
-    ## [106]  3.2  7.7  7.3  0.1  7.2  8.6 10.9  1.1  7.4  8.1  9.9  8.7  8.8  7.0  2.9
-    ## [121]  5.1  2.7 10.5  8.6  3.9  8.1  9.8  2.4  7.8  0.6  7.2  8.1  0.2 10.3  6.0
-    ## [136]  7.0  2.1  1.6  8.8  9.6  8.7 10.9  8.4  6.5  7.4  7.9  5.2  2.5  8.7  8.8
-    ## [151]  9.9  3.7  2.3  8.3 11.4 11.3  7.6  4.9  1.2  9.9  8.4  1.0  5.7  6.9  6.4
-    ## [166] 10.1 10.1  8.7  7.2  8.9 11.4  3.2  8.8  7.3  4.0  5.0  8.4  6.1  1.1  8.6
-    ## [181]  8.6 11.0  7.2  9.4  5.9  4.6  7.2  9.8  3.1 10.6 10.3  9.1 10.4  7.3  9.2
-    ## [196]  9.1  8.9  5.3  2.5  3.2  8.1  9.2  8.9  8.9  7.6  4.1  1.3  8.7  8.7  8.3
-    ## [211]  7.4  2.9  3.8  1.4  7.0  4.2  4.4  1.7  5.6 10.2  7.6  1.4 14.6 10.4  7.1
-    ## [226]  8.4  0.7  4.5  5.7  6.5  8.1  4.7 10.5  0.1  0.6  5.0  5.4  8.9  7.3  3.8
-    ## [241]  5.4  8.4  7.4  9.4  3.8  9.6  5.9  9.6 11.8  0.8  7.7  8.7  7.7  8.8  7.4
-    ## [256]  7.1  5.5  7.7  8.1  2.0  8.6 11.0  5.9 10.3  9.7  2.1 11.4  8.1  7.7  8.3
-    ## [271] 11.7 13.4  7.4 10.1  7.9  5.1  3.9  6.2  7.7  5.2  3.2  9.3 16.4  8.3  1.1
-    ## [286]  5.2  3.5  7.2 10.9  3.5 10.9 10.3  2.0  4.4  6.9  7.8  0.3  3.1  5.3  7.2
-    ## [301]  3.3  4.3  1.3  3.5  3.1  7.7  7.9  7.1 12.2  7.2  7.7
+    ##   [1] 11.0  1.2  1.2 14.5  5.2 10.5  7.6  8.7 13.0  7.5  6.0  4.5  7.6 10.3  4.5
+    ##  [16]  6.5  5.9 11.2  1.2  9.0 10.2  8.8  8.0 11.2  3.2  2.0  7.3  0.9  1.2 13.7
+    ##  [31]  7.7  8.6  3.0 10.3 11.2 10.9  6.4  8.6  8.2  6.0  7.8  7.7  5.8  8.1  9.0
+    ##  [46] 10.1  4.4 10.7  9.8  1.6  1.1  6.0  9.0  5.2 11.9 13.5  7.5  7.2  6.0  7.6
+    ##  [61]  8.1  7.6 10.0 10.6  4.0  5.1 10.5  7.7  4.6  8.0  5.3  8.1 10.3  9.5 10.2
+    ##  [76]  7.5  8.5 11.4  7.8 12.2  6.2  7.6  8.2  8.0  6.5  4.0  2.1  8.0  8.3  4.5
+    ##  [91]  7.1  7.2 10.5  2.1  1.8  3.9 11.2 13.5 10.8 12.1  7.2 11.1  7.2  5.0  1.2
+    ## [106]  3.2  7.7  7.3  0.1  7.2  8.6 11.0  1.1  7.5  8.1 10.0  8.7  8.8  7.1  2.9
+    ## [121]  5.2  2.7 10.6  8.6  3.9  8.1  9.9  2.4  7.8  0.6  7.2  8.1  0.2 10.3  6.0
+    ## [136]  7.0  2.1  1.6  8.8  9.6  8.7 11.0  8.5  6.5  7.5  8.0  5.2  2.5  8.7  8.8
+    ## [151] 10.0  3.7  2.3  8.3 11.4 11.3  7.6  4.9  1.2 10.0  8.5  1.0  5.7  6.9  6.5
+    ## [166] 10.1 10.1  8.7  7.2  9.0 11.4  3.2  8.8  7.3  4.0  5.0  8.5  6.1  1.1  8.6
+    ## [181]  8.6 11.1  7.2  9.5  6.0  4.6  7.2  9.8  3.1 10.6 10.4  9.1 10.5  7.3  9.2
+    ## [196]  9.1  9.0  5.4  2.5  3.2  8.1  9.2  9.0  9.0  7.6  4.1  1.3  8.7  8.7  8.3
+    ## [211]  7.5  2.9  3.8  1.4  7.0  4.2  4.4  1.7  5.6 10.2  7.6  1.4 14.6 10.5  7.1
+    ## [226]  8.5  0.7  4.5  5.7  6.5  8.1  4.7 10.6  0.1  0.6  5.0  5.4  9.0  7.3  3.8
+    ## [241]  5.5  8.5  7.4  9.4  3.8  9.6  6.0  9.6 11.8  0.8  7.7  8.7  7.7  8.8  7.5
+    ## [256]  7.1  5.5  7.7  8.1  2.0  8.6 11.0  6.0 10.3  9.7  2.1 11.4  8.1  7.7  8.3
+    ## [271] 11.7 13.5  7.5 10.1  8.0  5.2  3.9  6.2  7.7  5.2  3.2  9.3 16.5  8.3  1.1
+    ## [286]  5.2  3.5  7.2 11.0  3.5 10.9 10.3  2.0  4.4  7.0  7.8  0.3  3.1  5.3  7.2
+    ## [301]  3.3  4.3  1.3  3.5  3.1  7.7  8.0  7.1 12.2  7.2  7.7
 
 The distribution:
 
@@ -966,7 +969,7 @@ str(hr2 %>%
     ##   # Good
     ##   data %>% select(where(is.character))
     ## 
-    ## i Please update your code.
+    ## ℹ Please update your code.
     ## This message is displayed once per session.
 
     ## 'data.frame':    311 obs. of  13 variables:
@@ -1008,14 +1011,14 @@ str(hr2 %>%
     ##   # Good
     ##   data %>% select(where(is.factor))
     ## 
-    ## i Please update your code.
+    ## ℹ Please update your code.
     ## This message is displayed once per session.
 
     ## 'data.frame':    311 obs. of  9 variables:
     ##  $ Salary              : int  62506 104437 64955 64991 50825 57568 95660 59365 47837 50178 ...
     ##  $ Termd               : int  0 1 1 0 1 0 0 0 0 0 ...
     ##  $ Age                 : num  40 48 35 35 34 46 44 40 53 35 ...
-    ##  $ years_worked        : num  10.9 1.2 1.2 14.4 5.2 10.4 7.6 8.7 12.9 7.4 ...
+    ##  $ years_worked        : num  11 1.2 1.2 14.5 5.2 10.5 7.6 8.7 13 7.5 ...
     ##  $ EngagementSurvey    : num  4.6 4.96 3.02 4.84 5 5 3.04 5 4.46 5 ...
     ##  $ EmpSatisfaction     : int  5 3 3 5 4 5 3 4 3 5 ...
     ##  $ SpecialProjectsCount: int  0 6 0 0 0 0 4 0 0 6 ...
@@ -1148,14 +1151,6 @@ skim_without_charts(hr2)
 <caption>
 Data summary
 </caption>
-<thead>
-<tr>
-<th style="text-align:left;">
-</th>
-<th style="text-align:left;">
-</th>
-</tr>
-</thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
@@ -1671,10 +1666,10 @@ years_worked
 1
 </td>
 <td style="text-align:right;">
-7.01
+7.03
 </td>
 <td style="text-align:right;">
-3.19
+3.21
 </td>
 <td style="text-align:right;">
 0.10
@@ -1686,10 +1681,10 @@ years_worked
 7.60
 </td>
 <td style="text-align:right;">
-8.9
+9.0
 </td>
 <td style="text-align:right;">
-16.4
+16.5
 </td>
 </tr>
 <tr>
@@ -2207,7 +2202,7 @@ summary(gower.dis)
 
     ## 48205 dissimilarities, summarized :
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ## 0.04055 0.36283 0.44708 0.44747 0.53095 0.85907 
+    ##  0.0402  0.3628  0.4471  0.4475  0.5310  0.8592 
     ## Metric :  mixed ;  Types = I, N, N, N, I, N, N, N, N, N, I, N, N, N, N, N, N, I, N, I, I, I 
     ## Number of objects : 311
 
@@ -2227,7 +2222,7 @@ hr2[which(gower_mat == min(gower_mat[gower_mat != min(gower_mat)]),   # min for 
     ## Mahoney  Lauren    45395     0 Production Technician I    MA  37   F
     ## Hudson  Jane       55425     0 Production Technician I    MA  37   F
     ##                   MaritalDesc CitizenDesc HispanicLatino RaceDesc years_worked
-    ## Mahoney  Lauren        Single  US Citizen             No    White          8.4
+    ## Mahoney  Lauren        Single  US Citizen             No    White          8.5
     ## Hudson  Jane           Single  US Citizen             No    White         10.3
     ##                          TermReason EmploymentStatus Department   ManagerName
     ## Mahoney  Lauren   N/A-StillEmployed           Active Production Ketsia Liebig
@@ -2309,8 +2304,8 @@ for (i in 2:10) {
 sil_df
 ```
 
-    ##  [1]         NA 0.25936765 0.10365527 0.10530738 0.10607586 0.08909578
-    ##  [7] 0.08380547 0.07505508 0.07850011 0.07501662
+    ##  [1]         NA 0.25943380 0.10367984 0.10533252 0.10610595 0.08910639
+    ##  [7] 0.08380434 0.07505332 0.07848883 0.07500569
 
 Plot the result:
 
@@ -2383,14 +2378,14 @@ summary(cluster1_stat[, -1])
     ##  3rd Qu.:49.00           Widowed  :  4                                   
     ##  Max.   :72.00                                                           
     ##                                                                          
-    ##                              RaceDesc    years_worked  
-    ##  American Indian or Alaska Native:  3   Min.   : 2.00  
-    ##  Asian                           : 20   1st Qu.: 7.40  
-    ##  Black or African American       : 53   Median : 8.40  
-    ##  Hispanic                        :  1   Mean   : 8.66  
-    ##  Two or more races               : 10   3rd Qu.:10.12  
-    ##  White                           :125   Max.   :16.40  
-    ##                                                        
+    ##                              RaceDesc    years_worked   
+    ##  American Indian or Alaska Native:  3   Min.   : 2.000  
+    ##  Asian                           : 20   1st Qu.: 7.500  
+    ##  Black or African American       : 53   Median : 8.500  
+    ##  Hispanic                        :  1   Mean   : 8.694  
+    ##  Two or more races               : 10   3rd Qu.:10.125  
+    ##  White                           :125   Max.   :16.500  
+    ##                                                         
     ##                          TermReason                EmploymentStatus
     ##  N/A-StillEmployed            :207   Active                :207    
     ##  performance                  :  2   Terminated for Cause  :  3    
@@ -2495,7 +2490,7 @@ hr2[res.pam$medoids, ]
     ## Nguyen  Lei-Ming  62061     0 Production Technician I    MA  39   F      Single
     ## Panjwani  Nina    63515     1 Production Technician I    MA  44   F     Married
     ##                  CitizenDesc HispanicLatino RaceDesc years_worked
-    ## Nguyen  Lei-Ming  US Citizen             No    White          8.9
+    ## Nguyen  Lei-Ming  US Citizen             No    White          9.0
     ## Panjwani  Nina    US Citizen             No    White          2.9
     ##                         TermReason       EmploymentStatus Department
     ## Nguyen  Lei-Ming N/A-StillEmployed                 Active Production
@@ -2916,7 +2911,121 @@ ggplot(df8.3.2, aes(y = fct_reorder(RecruitmentSource, per), x = per, color = cu
 
 ![](hr_files/figure-gfm/unnamed-chunk-52-1.png)<!-- -->
 
-#### 8.3.2 Multiple Correspondence Analysis (MCA)
+#### 8.3.2 Statistical Analysis
+
+Graphs above suggests that “Diversity job fair” is the best recruiting
+source for diverse background employees. However, it was based on
+proportion. Following contingency table summarises the overall counts of
+each recruitment source.
+
+``` r
+df8.stat <- df8.3 %>% 
+  select(RecruitmentSource, diversity) %>% 
+  group_by(RecruitmentSource, diversity) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = diversity, values_from = count) %>% 
+  replace_na(list('Non-Diverse' = 0,
+                  'Diverse' = 0)) %>% 
+  column_to_rownames(var = "RecruitmentSource")
+
+# Contingency table
+
+df8.stat.table <- as.table(as.matrix(df8.stat))
+
+# Ballon plot
+
+balloonplot(t(df8.stat.table),
+            dotsize = 6,
+            dotcolor = "green",
+            show.margins = T,
+            main = "",
+            ylab = "",
+            xlab = "")
+```
+
+![](hr_files/figure-gfm/unnamed-chunk-53-1.png)<!-- -->
+
+A chi-squared test can be carried out but a **warning message** will be
+suggesting that the test outcome might be invalid because the general
+rule is that the count of each cell should be higher than 5 (though very
+few of lower than 5 might be acceptable.)
+
+``` r
+df <-  df8.3 %>% 
+  select(RecruitmentSource, diversity)
+
+chisq.test(df$RecruitmentSource, df$diversity)
+```
+
+    ## Warning in chisq.test(df$RecruitmentSource, df$diversity): Chi-squared
+    ## approximation may be incorrect
+
+    ## 
+    ##  Pearson's Chi-squared test
+    ## 
+    ## data:  df$RecruitmentSource and df$diversity
+    ## X-squared = 25.601, df = 8, p-value = 0.001229
+
+Now I will try to merge “On-line Web application”, “Other”, and
+“Website” into “CareerBuilder”, since they are the ones with least
+counts. A new variable “CareerBuilder & others” will be synthesised.
+
+``` r
+df8.stat2 <- df8.3 %>% 
+  select(RecruitmentSource, diversity) %>% 
+  mutate(RecruitmentSource = fct_recode(RecruitmentSource,
+                                        "CarreerBuilder & Others" = "On-line Web application",
+                                        "CarreerBuilder & Others" = "Other",
+                                        "CarreerBuilder & Others" = "Website",
+                                        "CarreerBuilder & Others" = "CareerBuilder")) %>% 
+   group_by(RecruitmentSource, diversity) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = diversity, values_from = count) %>% 
+  replace_na(list('Non-Diverse' = 0,
+                  'Diverse' = 0)) %>% 
+  column_to_rownames(var = "RecruitmentSource")
+  
+# Contingency table
+
+df8.stat.table2 <- as.table(as.matrix(df8.stat2))
+
+# Ballon plot
+
+balloonplot(t(df8.stat.table2),
+            dotsize = 6,
+            dotcolor = "green",
+            show.margins = T,
+            main = "",
+            ylab = "",
+            xlab = "")
+```
+
+![](hr_files/figure-gfm/unnamed-chunk-55-1.png)<!-- --> Now the
+chi-square test result suggests a significant outcome that diversity
+counts varied significantly among recruitment sources (Chi-squared test
+for independence: *x2* = 21.989, df = 5, p-value = 0.0005).
+
+``` r
+df2 <-  df8.3 %>% 
+  select(RecruitmentSource, diversity) %>% 
+  mutate(RecruitmentSource = fct_recode(RecruitmentSource,
+                                        "CarreerBuilder & Others" = "On-line Web application",
+                                        "CarreerBuilder & Others" = "Other",
+                                        "CarreerBuilder & Others" = "Website",
+                                        "CarreerBuilder & Others" = "CareerBuilder")) 
+
+chisq.test(df2$RecruitmentSource, df2$diversity)
+```
+
+    ## 
+    ##  Pearson's Chi-squared test
+    ## 
+    ## data:  df2$RecruitmentSource and df2$diversity
+    ## X-squared = 21.989, df = 5, p-value = 0.0005261
+
+#### 8.3.3 Multiple Correspondence Analysis (MCA)
 
 Several features that take part in this data mining are gender, whether
 the has Hispani or Latino origin, Race, and recruitment source.
@@ -2938,7 +3047,7 @@ res.mca <- MCA(df8.3.3, graph = F, quali.sup = 4)
 fviz_screeplot(res.mca, addlabels = T)
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-53-1.png)<!-- -->
+![](hr_files/figure-gfm/unnamed-chunk-57-1.png)<!-- -->
 
 There are many principal components (Dimensions) are able to be used for
 this analysis because many of the dimensions in the graph explain low
@@ -2957,7 +3066,7 @@ exploration purposes, some trends might be detectable.
 fviz_mca_biplot(res.mca, repel = T, palette = "jco")
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-54-1.png)<!-- -->
+![](hr_files/figure-gfm/unnamed-chunk-58-1.png)<!-- -->
 
 This biplot does not explain much of the variation based on Dim1 and
 Dim2. However, some trends we might be able to extract. For examples, if
@@ -3058,10 +3167,6 @@ g5 <- ggplot(df8.4, aes(x = years_worked, y = Salary)) +
   labs(title = "Years Worked",
        subtitle = "Almost zero correlation (Pearson) between \nyears of working and Age") +
   stat_regline_equation(label.x = 12, label.y = 150000, size = 4) +
-  
-  stat_cor(label.x = 12, label.y = 140000, size = 3,
-           method = "pearson", aes(label = ..r.label..)) +
-  
   stat_cor(label.x = 12, label.y = 130000, size = 3,
            method = "pearson", aes(label = ..rr.label..))
 
@@ -3096,7 +3201,7 @@ plot_grid(top, g6,
           ncol = 1)
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-56-1.png)<!-- -->
+![](hr_files/figure-gfm/unnamed-chunk-60-1.png)<!-- -->
 
 Insights gained:
 
@@ -3111,7 +3216,114 @@ Insights gained:
     years of working and Age.  
 -   **Salary-Position-DiverseGroup**: No unequal pay detected.
 
-#### 8.4.2 Regression
+#### 8.4.2 Statistical Analysis
+
+**Gender**
+
+From the boxplot visualisation above, I can see that the distributions
+are skewed and not following a normal distribution. I am therefore will
+be using a quick non-parametric test to statistically compare the income
+between genders, called “Kolmogorov-Smirnov test”. The results rejects
+the null hypothesis and concludes that there is no significant
+difference in income between genders.
+
+``` r
+ks.test(df8.4$Salary~df8.4$Sex)
+```
+
+    ## Warning in ks.test.default(x = DATA[[1L]], y = DATA[[2L]], ...): p-value will be
+    ## approximate in the presence of ties
+
+    ## 
+    ##  Asymptotic two-sample Kolmogorov-Smirnov test
+    ## 
+    ## data:  df8.4$Salary by df8.4$Sex
+    ## D = 0.13468, p-value = 0.1251
+    ## alternative hypothesis: two-sided
+
+**Race + Gender**
+
+Following are the number of races in the company. Considering the sample
+size of “American Indian or Alaska Native”, and “Hispanic” are too small
+and is not fair to be used for comparison, I will remove them from the
+dataset used in this statistical section.
+
+``` r
+df.race <- df8.4 %>% dplyr::select(RaceDesc, Sex, Salary)
+
+df.race %>% 
+  group_by(RaceDesc) %>% 
+  summarise(count = n())
+```
+
+    ## # A tibble: 6 × 2
+    ##   RaceDesc                         count
+    ##   <fct>                            <int>
+    ## 1 American Indian or Alaska Native     3
+    ## 2 Asian                               29
+    ## 3 Black or African American           80
+    ## 4 Hispanic                             1
+    ## 5 Two or more races                   11
+    ## 6 White                              187
+
+Following codes perform the removal.
+
+``` r
+df.race2 <- df8.4 %>% 
+  dplyr::select(RaceDesc, Sex, Salary) %>% 
+  filter(RaceDesc != "American Indian or Alaska Native",
+         RaceDesc != "Hispanic")
+```
+
+Now I have following datasets for analysis.
+
+``` r
+df.race3 <- df.race2 %>% 
+  mutate(RaceDes_Sex = paste0(RaceDesc, "-", Sex)) %>% 
+  dplyr::select(RaceDes_Sex, Salary)
+
+df.race2 %>% 
+  mutate(RaceDes_Sex = paste0(RaceDesc, "-", Sex)) %>% 
+  dplyr::select(RaceDes_Sex, Salary) %>% 
+  group_by(RaceDes_Sex) %>% 
+  summarise(count = n())
+```
+
+    ## # A tibble: 8 × 2
+    ##   RaceDes_Sex                 count
+    ##   <chr>                       <int>
+    ## 1 Asian-F                        17
+    ## 2 Asian-M                        12
+    ## 3 Black or African American-F    47
+    ## 4 Black or African American-M    33
+    ## 5 Two or more races-F             6
+    ## 6 Two or more races-M             5
+    ## 7 White-F                       104
+    ## 8 White-M                        83
+
+It can be generally assumed that salary has a skewed distribution and
+parametric tests are automatically become inappropriate. However, I will
+generally do visualisation or normalily test. Based on the boxplot
+visualisation above, I can see that that are not following a normally
+distributed pattern and therefore I will pick non-parametric test.
+
+**Kruskal-Wallis test**
+
+Non-parametric Kruskal-Wallies test concludes that there is no
+significant difference between race and sex in salary (Kruskal-Wallis
+chi-squared = 11.997, df = 7, p-value = 0.1007).
+
+``` r
+kruskal.test(Salary~RaceDes_Sex, data = df.race3)
+```
+
+    ## 
+    ##  Kruskal-Wallis rank sum test
+    ## 
+    ## data:  Salary by RaceDes_Sex
+    ## Kruskal-Wallis chi-squared = 11.997, df = 7, p-value = 0.1007
+
+#### 8.4.3 Regression
 
 This will be an inferential regression model for inferential purposes.
 P-values will be computed to find out which numerical variables and
@@ -3134,50 +3346,50 @@ summary(model_lm)
     ## 
     ## Residuals:
     ##    Min     1Q Median     3Q    Max 
-    ## -13835  -4165      0   4387  14962 
+    ## -13834  -4166      0   4389  14954 
     ## 
     ## Coefficients: (5 not defined because of singularities)
     ##                                       Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)                           64064.96    5570.12  11.502  < 2e-16 ***
-    ## PositionAdministrative Assistant     -12062.24    5184.27  -2.327  0.02072 *  
-    ## PositionArea Sales Manager             1330.91    3851.46   0.346  0.72994    
-    ## PositionBI Developer                  31537.98    4794.78   6.578 2.45e-10 ***
-    ## PositionBI Director                   46932.94    7266.25   6.459 4.86e-10 ***
-    ## PositionCIO                          157435.18    7253.76  21.704  < 2e-16 ***
-    ## PositionData Analyst                  25986.51    4262.16   6.097 3.71e-09 ***
-    ## PositionData Architect                85170.18    7257.55  11.735  < 2e-16 ***
-    ## PositionDatabase Administrator        44318.89    4667.41   9.495  < 2e-16 ***
-    ## PositionDirector of Operations       106995.55    7220.37  14.819  < 2e-16 ***
-    ## PositionDirector of Sales            115853.30    7298.40  15.874  < 2e-16 ***
-    ## PositionEnterprise Architect          37816.12    7319.69   5.166 4.63e-07 ***
-    ## PositionIT Director                  114086.38    7211.81  15.819  < 2e-16 ***
-    ## PositionIT Manager - DB               80406.57    5757.02  13.967  < 2e-16 ***
-    ## PositionIT Manager - Infra            94165.16    7334.37  12.839  < 2e-16 ***
-    ## PositionIT Manager - Support          74145.46    7237.33  10.245  < 2e-16 ***
-    ## PositionIT Support                      631.40    4280.33   0.148  0.88284    
-    ## PositionNetwork Engineer              -1966.16    4619.46  -0.426  0.67072    
-    ## PositionPresident & CEO              186353.41    7534.98  24.732  < 2e-16 ***
-    ## PositionPrincipal Data Architect      56580.70    7439.81   7.605 4.69e-13 ***
-    ## PositionProduction Manager            10420.87    4071.50   2.559  0.01103 *  
-    ## PositionProduction Technician I       -8332.01    3700.23  -2.252  0.02514 *  
-    ## PositionProduction Technician II        832.71    3773.70   0.221  0.82552    
-    ## PositionSales Manager                  5676.22    5124.83   1.108  0.26902    
-    ## PositionSenior BI Developer           19392.08    5307.25   3.654  0.00031 ***
-    ## PositionShared Services Manager       29718.94    7235.31   4.107 5.30e-05 ***
-    ## PositionSoftware Engineer             32692.82    4129.70   7.917 6.30e-14 ***
-    ## PositionSoftware Engineering Manager  13986.88    7284.05   1.920  0.05588 .  
-    ## PositionSr. Accountant                39348.46    5714.57   6.886 4.00e-11 ***
-    ## PositionSr. DBA                       37857.87    5748.02   6.586 2.33e-10 ***
-    ## PositionSr. Network Engineer          28549.95    4660.55   6.126 3.16e-09 ***
-    ## Age                                      49.85      43.95   1.134  0.25766    
-    ## SexM                                   -122.96     757.37  -0.162  0.87115    
-    ## HispanicLatinoYes                      -885.89    1380.56  -0.642  0.52162    
-    ## RaceDescAsian                          -107.99    3888.72  -0.028  0.97787    
-    ## RaceDescBlack or African American      -850.23    3755.54  -0.226  0.82107    
-    ## RaceDescHispanic                       9252.81    7587.03   1.220  0.22369    
-    ## RaceDescTwo or more races             -2846.67    4102.35  -0.694  0.48833    
-    ## RaceDescWhite                         -1803.83    3706.33  -0.487  0.62687    
-    ## years_worked                           -118.01     123.50  -0.955  0.34018    
+    ## (Intercept)                           64060.83    5571.65  11.498  < 2e-16 ***
+    ## PositionAdministrative Assistant     -12061.94    5185.10  -2.326  0.02074 *  
+    ## PositionArea Sales Manager             1327.29    3851.71   0.345  0.73067    
+    ## PositionBI Developer                  31541.18    4794.84   6.578 2.45e-10 ***
+    ## PositionBI Director                   46929.37    7266.77   6.458 4.89e-10 ***
+    ## PositionCIO                          157424.62    7253.51  21.703  < 2e-16 ***
+    ## PositionData Analyst                  25984.83    4262.75   6.096 3.73e-09 ***
+    ## PositionData Architect                85179.88    7257.16  11.737  < 2e-16 ***
+    ## PositionDatabase Administrator        44320.94    4667.84   9.495  < 2e-16 ***
+    ## PositionDirector of Operations       106995.53    7220.65  14.818  < 2e-16 ***
+    ## PositionDirector of Sales            115847.56    7298.69  15.872  < 2e-16 ***
+    ## PositionEnterprise Architect          37817.68    7320.23   5.166 4.64e-07 ***
+    ## PositionIT Director                  114077.23    7211.73  15.818  < 2e-16 ***
+    ## PositionIT Manager - DB               80402.46    5757.49  13.965  < 2e-16 ***
+    ## PositionIT Manager - Infra            94169.57    7334.57  12.839  < 2e-16 ***
+    ## PositionIT Manager - Support          74151.30    7237.37  10.246  < 2e-16 ***
+    ## PositionIT Support                      628.97    4280.46   0.147  0.88329    
+    ## PositionNetwork Engineer              -1969.98    4620.18  -0.426  0.67016    
+    ## PositionPresident & CEO              186358.27    7535.23  24.732  < 2e-16 ***
+    ## PositionPrincipal Data Architect      56580.74    7440.29   7.605 4.71e-13 ***
+    ## PositionProduction Manager            10419.20    4071.88   2.559  0.01105 *  
+    ## PositionProduction Technician I       -8333.84    3700.58  -2.252  0.02512 *  
+    ## PositionProduction Technician II        831.06    3774.36   0.220  0.82589    
+    ## PositionSales Manager                  5672.54    5125.51   1.107  0.26939    
+    ## PositionSenior BI Developer           19393.72    5307.47   3.654  0.00031 ***
+    ## PositionShared Services Manager       29726.27    7235.13   4.109 5.28e-05 ***
+    ## PositionSoftware Engineer             32690.99    4130.15   7.915 6.35e-14 ***
+    ## PositionSoftware Engineering Manager  13989.30    7284.29   1.920  0.05585 .  
+    ## PositionSr. Accountant                39346.19    5714.66   6.885 4.01e-11 ***
+    ## PositionSr. DBA                       37863.22    5747.94   6.587 2.32e-10 ***
+    ## PositionSr. Network Engineer          28547.62    4660.90   6.125 3.18e-09 ***
+    ## Age                                      49.84      43.95   1.134  0.25777    
+    ## SexM                                   -122.53     757.38  -0.162  0.87160    
+    ## HispanicLatinoYes                      -886.78    1380.61  -0.642  0.52122    
+    ## RaceDescAsian                          -107.77    3888.87  -0.028  0.97791    
+    ## RaceDescBlack or African American      -849.90    3755.70  -0.226  0.82114    
+    ## RaceDescHispanic                       9248.15    7587.11   1.219  0.22393    
+    ## RaceDescTwo or more races             -2845.01    4102.42  -0.693  0.48859    
+    ## RaceDescWhite                         -1802.80    3706.44  -0.486  0.62708    
+    ## years_worked                           -116.86     122.98  -0.950  0.34285    
     ## DepartmentExecutive Office                  NA         NA      NA       NA    
     ## DepartmentIT/IS                             NA         NA      NA       NA    
     ## DepartmentProduction                        NA         NA      NA       NA    
@@ -3357,7 +3569,7 @@ grid.arrange(top, middle, g6,
                                x = 1))
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-59-1.png)<!-- -->
+![](hr_files/figure-gfm/unnamed-chunk-68-1.png)<!-- -->
 
 **Insights**
 
@@ -3731,7 +3943,7 @@ ggplot(knn_model_df, aes(x = k, y = Accuracy)) +
   labs(title = "cross-validation")
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-66-1.png)<!-- -->
+![](hr_files/figure-gfm/unnamed-chunk-75-1.png)<!-- -->
 
 The best K is 35 because it has the highest accuracy rate.
 
@@ -3823,7 +4035,7 @@ plot.roc(res.roc.knn,
          main = "ROC - Decision Tree")
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-69-1.png)<!-- --> The best
+![](hr_files/figure-gfm/unnamed-chunk-78-1.png)<!-- --> The best
 probability is 0.329.
 
 The final step will be predicting on an unknown dataset (data without
@@ -4039,7 +4251,7 @@ maximise the accuracy.
 plot(model_rf)
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-76-1.png)<!-- --> The optimal mtry
+![](hr_files/figure-gfm/unnamed-chunk-85-1.png)<!-- --> The optimal mtry
 is 45.
 
 ``` r
@@ -4047,7 +4259,7 @@ model_rf$bestTune
 ```
 
     ##   mtry
-    ## 3   89
+    ## 2   45
 
 Following shows the description of the final random forest model that
 will be used automatically to make prediction.
@@ -4061,7 +4273,7 @@ model_rf$finalModel
     ##  randomForest(x = x, y = y, mtry = min(param$mtry, ncol(x)), importance = ..2,      allowParallel = ..1) 
     ##                Type of random forest: classification
     ##                      Number of trees: 500
-    ## No. of variables tried at each split: 89
+    ## No. of variables tried at each split: 45
     ## 
     ##         OOB estimate of  error rate: 5.5%
     ## Confusion matrix:
@@ -4083,7 +4295,7 @@ at a higher chance.
 plot(varImp(model_rf),top = 20)
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-79-1.png)<!-- -->
+![](hr_files/figure-gfm/unnamed-chunk-88-1.png)<!-- -->
 
 Following graph completes the first round of random forest prediction
 with probability cut-off point at 0.50. The result is amazing, it has a
@@ -4148,7 +4360,7 @@ plot.roc(res.roc.rf,
          auc.polygon.col = "green")
 ```
 
-![](hr_files/figure-gfm/unnamed-chunk-81-1.png)<!-- -->
+![](hr_files/figure-gfm/unnamed-chunk-90-1.png)<!-- -->
 
 Making prediction again using the test set but with 0.405 probability
 cut off point.

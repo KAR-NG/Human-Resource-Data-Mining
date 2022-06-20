@@ -20,7 +20,7 @@ always_allow_html: yes
 
 This project applies a series of data mining techniques including clustering, principal component methods, regression, and classification algorithms to study inner trends hiden the dataset. Numerous visualisation were also applied to aid each of these data mining methods. In this project, 5 analytical tasks have been completed using VAT validated gower-PAM clustering, correspondence analysis (CA), asymmetric-biplot, multiple correspondence analysis (MCA), Chi-Squared test, Regression, and predictive classification models with KNN, SVM, and Random Forest.
 
-Outputs show that there is no statistical evidence (p-value = 0.249) to support the argument that several managers among all are good at training their employees, or vice versa. Instead, most managers are good at training their subordinates reaching the "fully meet" standard. The company do actively hire employees from diverse backgrounds. The company has a good level of overall diversity level at 76%. 40% of the employees in the company are female and 40% are employees from diverse backgrounds. The company recruits employees from 8 sources and diversity job fair is the best choice if the company is keen to hire an employee from a diverse background, and employee-referral being the worst source at hiring an employee with diverse background.
+Outputs show that there is no statistical evidence (p-value = 0.249) to support the argument that several managers among all are good at training their employees, or vice versa. Instead, most managers are good at training their subordinates reaching the "fully meet" standard. The company do actively hire employees from diverse backgrounds. The company has a good level of overall diversity level at 76%. 40% of the employees in the company are female and 40% are employees from diverse backgrounds. The company recruits employees from 8 sources and diversity job fair is the best choice if the company is keen to hire an employee from a diverse background, and employee-referral being the worst source at hiring an employee with diverse background (Chi-squared test for independence: x-squared = 21.989, df = 5, p-value = 0.0005).
 
 Inferential regression was applied to study the relationships between salary and numerous factors (variables) that would potentially relates to unequal pay, such as age, years of working, race, gender and etc, and the result shows that the company is paying employees equally, supported by extensive visualisation and P-values of higher than 0.05. Finally, this dataset provides sufficient data to train a model with great predictive power. K-Nearest Neighbor (KNN), Polynomial-kernel Support Vector Machine (SVM), and Random Forest were selected as the modeling candidates. Output shows that Random Forest models with 0.405 probability cut-off point is the best algorithm to make prediction for who is leaving the company. It has a reliable overall accuracy rate at 95.6%, sensitivity rate of 93.5% (the metric that we are most interested in) and specificity rate of 96.9%. 
 
@@ -1047,8 +1047,96 @@ ggplot(df8.3.2, aes(y = fct_reorder(RecruitmentSource, per), x = per, color = cu
 
 ```
 
+#### 8.3.2 Statistical Analysis
 
-#### 8.3.2 Multiple Correspondence Analysis (MCA)
+Graphs above suggests that "Diversity job fair" is the best recruiting source for diverse background employees. However, it was based on proportion. Following contingency table summarises the overall counts of each recruitment source. 
+
+```{r, warning=FALSE, message=FALSE}
+df8.stat <- df8.3 %>% 
+  select(RecruitmentSource, diversity) %>% 
+  group_by(RecruitmentSource, diversity) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = diversity, values_from = count) %>% 
+  replace_na(list('Non-Diverse' = 0,
+                  'Diverse' = 0)) %>% 
+  column_to_rownames(var = "RecruitmentSource")
+
+# Contingency table
+
+df8.stat.table <- as.table(as.matrix(df8.stat))
+
+# Ballon plot
+
+balloonplot(t(df8.stat.table),
+            dotsize = 6,
+            dotcolor = "green",
+            show.margins = T,
+            main = "",
+            ylab = "",
+            xlab = "")
+
+```
+
+A chi-squared test can be carried out but a **warning message** will be suggesting that the test outcome might be invalid because the general rule is that the count of each cell should be higher than 5 (though very few of lower than 5 might be acceptable.) 
+
+```{r}
+df <-  df8.3 %>% 
+  select(RecruitmentSource, diversity)
+
+chisq.test(df$RecruitmentSource, df$diversity)
+```
+
+Now I will try to merge "On-line Web application", "Other", and "Website" into "CareerBuilder", since they are the ones with least counts. A new variable "CareerBuilder & others" will be synthesised.
+
+```{r, warning=FALSE, message=FALSE}
+df8.stat2 <- df8.3 %>% 
+  select(RecruitmentSource, diversity) %>% 
+  mutate(RecruitmentSource = fct_recode(RecruitmentSource,
+                                        "CarreerBuilder & Others" = "On-line Web application",
+                                        "CarreerBuilder & Others" = "Other",
+                                        "CarreerBuilder & Others" = "Website",
+                                        "CarreerBuilder & Others" = "CareerBuilder")) %>% 
+   group_by(RecruitmentSource, diversity) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = diversity, values_from = count) %>% 
+  replace_na(list('Non-Diverse' = 0,
+                  'Diverse' = 0)) %>% 
+  column_to_rownames(var = "RecruitmentSource")
+  
+# Contingency table
+
+df8.stat.table2 <- as.table(as.matrix(df8.stat2))
+
+# Ballon plot
+
+balloonplot(t(df8.stat.table2),
+            dotsize = 6,
+            dotcolor = "green",
+            show.margins = T,
+            main = "",
+            ylab = "",
+            xlab = "")
+
+```
+Now the chi-square test result suggests a significant outcome that diversity counts varied significantly among recruitment sources (Chi-squared test for independence: *x2* = 21.989, df = 5, p-value = 0.0005). 
+
+```{r}
+df2 <-  df8.3 %>% 
+  select(RecruitmentSource, diversity) %>% 
+  mutate(RecruitmentSource = fct_recode(RecruitmentSource,
+                                        "CarreerBuilder & Others" = "On-line Web application",
+                                        "CarreerBuilder & Others" = "Other",
+                                        "CarreerBuilder & Others" = "Website",
+                                        "CarreerBuilder & Others" = "CareerBuilder")) 
+
+chisq.test(df2$RecruitmentSource, df2$diversity)
+```
+
+
+
+#### 8.3.3 Multiple Correspondence Analysis (MCA)
 
 Several features that take part in this data mining are gender, whether the has Hispani or Latino origin, Race, and recruitment source. Recruitment source will be used as supplementary variable which will be used to understand the data without actually affecting the multiple correspondence analysis (MCA) result. 
 
@@ -1104,7 +1192,7 @@ colnames(df8.4)
   
 ```
 
-```{r, fig.height=12, fig.width=14, message=FALSE, warning=FALSE}
+```{r, fig.height=14, fig.width=14, message=FALSE, warning=FALSE}
 
 # 1. Sex 
 g1 <- ggplot(df8.4, aes(x = Sex, y = Salary)) +
@@ -1166,10 +1254,6 @@ g5 <- ggplot(df8.4, aes(x = years_worked, y = Salary)) +
   labs(title = "Years Worked",
        subtitle = "Almost zero correlation (Pearson) between \nyears of working and Age") +
   stat_regline_equation(label.x = 12, label.y = 150000, size = 4) +
-  
-  stat_cor(label.x = 12, label.y = 140000, size = 3,
-           method = "pearson", aes(label = ..r.label..)) +
-  
   stat_cor(label.x = 12, label.y = 130000, size = 3,
            method = "pearson", aes(label = ..rr.label..))
 
@@ -1216,7 +1300,69 @@ Insights gained:
 * **Salary-Position-DiverseGroup**: No unequal pay detected.   
 
 
-#### 8.4.2 Regression
+#### 8.4.2 Statistical Analysis
+
+**Gender**
+
+From the boxplot visualisation above, I can see that the distributions are skewed and not following a normal distribution. I am therefore will be using a quick non-parametric test to statistically compare the income between genders, called "Kolmogorov-Smirnov test". The results rejects the null hypothesis and concludes that there is no significant difference in income between genders.
+
+```{r}
+ks.test(df8.4$Salary~df8.4$Sex)
+
+```
+
+**Race + Gender**
+
+Following are the number of races in the company. Considering the sample size of "American Indian or Alaska Native", and "Hispanic" are too small and is not fair to be used for comparison, I will remove them from the dataset used in this statistical section. 
+
+```{r}
+df.race <- df8.4 %>% dplyr::select(RaceDesc, Sex, Salary)
+
+df.race %>% 
+  group_by(RaceDesc) %>% 
+  summarise(count = n())
+
+```
+Following codes perform the removal. 
+
+```{r}
+df.race2 <- df8.4 %>% 
+  dplyr::select(RaceDesc, Sex, Salary) %>% 
+  filter(RaceDesc != "American Indian or Alaska Native",
+         RaceDesc != "Hispanic")
+
+```
+
+Now I have following datasets for analysis. 
+
+```{r}
+
+df.race3 <- df.race2 %>% 
+  mutate(RaceDes_Sex = paste0(RaceDesc, "-", Sex)) %>% 
+  dplyr::select(RaceDes_Sex, Salary)
+
+df.race2 %>% 
+  mutate(RaceDes_Sex = paste0(RaceDesc, "-", Sex)) %>% 
+  dplyr::select(RaceDes_Sex, Salary) %>% 
+  group_by(RaceDes_Sex) %>% 
+  summarise(count = n())
+  
+```
+
+It can be generally assumed that salary has a skewed distribution and parametric tests are automatically become inappropriate. However, I will generally do visualisation or normalily test. Based on the boxplot visualisation above, I can see that that are not following a normally distributed pattern and therefore I will pick non-parametric test. 
+
+**Kruskal-Wallis test**
+
+Non-parametric Kruskal-Wallies test concludes that there is no significant difference between race and sex in salary (Kruskal-Wallis chi-squared = 11.997, df = 7, p-value = 0.1007).
+
+```{r}
+kruskal.test(Salary~RaceDes_Sex, data = df.race3)
+
+
+```
+
+
+#### 8.4.3 Regression
 
 This will be an inferential regression model for inferential purposes. P-values will be computed to find out which numerical variables and categories among categorical variables are significantly related with the salary of employees. For example, if "Gender" is significantly related to salary with a P-value of less than 0.05, together with a high level beta coefficient estimates, it can be an statistical evidence that pay is unequal among different genders.
 
