@@ -22,7 +22,7 @@ This project applies a series of data mining techniques including clustering, pr
 
 Outputs show that there is no statistical evidence (p-value = 0.249) to support the argument that several managers among all are good at training their employees, or vice versa. Instead, most managers are good at training their subordinates reaching the "fully meet" standard. The company do actively hire employees from diverse backgrounds. The company has a good level of overall diversity level at 76%. 40% of the employees in the company are female and 40% are employees from diverse backgrounds. The company recruits employees from 8 sources and diversity job fair is the best choice if the company is keen to hire an employee from a diverse background, and employee-referral being the worst source at hiring an employee with diverse background (Chi-squared test for independence: x-squared = 21.989, df = 5, p-value = 0.0005).
 
-Inferential regression was applied to study the relationships between salary and numerous factors (variables) that would potentially relates to unequal pay, such as age, years of working, race, gender and etc, and the result shows that the company is paying employees equally, supported by extensive visualisation and P-values of higher than 0.05. Finally, this dataset provides sufficient data to train a model with great predictive power. K-Nearest Neighbor (KNN), Polynomial-kernel Support Vector Machine (SVM), and Random Forest were selected as the modeling candidates. Output shows that Random Forest models with 0.405 probability cut-off point is the best algorithm to make prediction for who is leaving the company. It has a reliable overall accuracy rate at 95.6%, sensitivity rate of 93.5% (the metric that we are most interested in) and specificity rate of 96.9%. 
+Inferential regression was applied to study the relationships between salary and numerous factors (variables) that would potentially relates to unequal pay, such as age, years of working, race, gender and etc, and the result shows that the company is paying employees equally, supported by extensive visualisation and P-values of higher than 0.05. Finally, this dataset provides sufficient data to train a model with great predictive power. K-Nearest Neighbor (KNN), Polynomial-kernel Support Vector Machine (SVM), and Random Forest were selected as the modeling candidates. Output shows that Random Forest models with 0.405 probability cut-off point is the best algorithm to make prediction for who is leaving the company. It has a reliable overall accuracy rate at 95.7%, sensitivity rate of 93.5% (the metric that we are most interested in) and specificity rate of 96.7%. 
 
 *Highlight*
 
@@ -1608,6 +1608,8 @@ Let's move on with the 67:33 rules. If the final prediction power is too low and
 I am applying 70:30 to split the data into train and test set. Train set will be used to train the model and test set will be used to evaluate the accuracy of the model.
 
 ```{r}
+set.seed(123)
+
 # Create Data Partition
 
 training.samples <- df8.5.2$Termd %>% createDataPartition(p = 0.7, list = F)
@@ -1669,16 +1671,16 @@ knn_model_df <- model_knn$results %>% select(k, Accuracy) %>%
 ggplot(knn_model_df, aes(x = k, y = Accuracy)) +
   geom_point(color = "blue") +
   geom_path(color = "blue") +
-  geom_vline(xintercept = 35, linetype = 2) +
-  annotate(geom = "text", x = 47, y = 0.67, 
-           label = "Best K: 15 (model_knn$bestTune)",
+  geom_vline(xintercept = 27, linetype = 2) +
+  annotate(geom = "text", x = 42, y = 0.67, 
+           label = "Best K: 27 (model_knn$bestTune)",
            size = 3) +
   theme_classic() +  
   labs(title = "cross-validation")
 
 ```
 
-The best K is 35 because it has the highest accuracy rate. 
+The best K is 27 because it has the highest accuracy rate. 
 
 ```{r}
 model_knn$bestTune
@@ -1693,9 +1695,9 @@ predicted.classes.knn <- model_knn %>% predict(test.set)
 confusionMatrix(predicted.classes.knn, test.set$Termd, positive = "1")
 
 ```
-The overall accuracy is *73%*, but the most interested metric "sensitivity" is only *22.6%*. Sensitivity is the proportion of terminated staffs being correctly identified as terminated. The specificity, the chance of getting who is not terminated is very high at *98%*. 
+The overall accuracy is *76.3%*, but the most interested metric "sensitivity" is only *38.7%*. Sensitivity is the proportion of terminated staffs being correctly identified as terminated. The specificity, the chance of getting who is not terminated is very high at *95.2%*. 
 
-The probability used to classify an observation point was at the default level of 0.50 (50%), this level generally works well but it is not at the current moment in our case. However, the probability can be adjusted by ROC (Receiver Operating Characteristic) curve to increase/adjust the "sensitivity" rate.
+The probability used to classify an observation point was at the default level of 0.50 (50%), this level generally works well but it is not in our case above. However, the probability can be adjusted by ROC (Receiver Operating Characteristic) curve to increase/adjust the "sensitivity" rate.
 
 ROC curve below will be used to tune the model by searching the best probability cut-off point. The ideal cut-off point should have an increment of sensitivity at the expense of "1 - specificity", or known as having a higher level of "true positive rate" in the expense of "false positive rate", and finally both metrics achieve at a similar level. The "false positive rate" is also equal to "1 minus Specificity" or "Specificity" with an inverse x-axis.
 
@@ -1719,9 +1721,10 @@ plot.roc(res.roc.knn,
          main = "ROC - Decision Tree")
 
 ```
-The best probability is 0.329. 
 
-The final step will be predicting on an unknown dataset (data without label) however it is not available in this project. So let's pretend the test set is an unknown dataset and I predict on it using KNN and probability threshold of 0.329. It is a manual procedure and require a bit of codes to achieve it. 
+The best probability is **0.426**. 
+
+The final step will be predicting on an unknown dataset (data without label) however it is not available in this project. So let's pretend the test set is an unknown dataset and I predict on it using KNN and probability threshold of **0.426**. It is a manual procedure and require a bit of codes to achieve it. 
 
 ```{r}
 # Predict on the test set, it is essential the same code as the previous code chunk before, but duplicating there to help digesting the workflow.  
@@ -1734,7 +1737,7 @@ predicted.classes.knn.prob2 <- model_knn %>%
 knn_finaldf <- predicted.classes.knn.prob2 %>% 
   dplyr::select("1") %>% 
   rename("termd" = "1") %>% 
-  mutate(outcome_0.3prob = ifelse(termd > 0.329, "1", "0"),
+  mutate(outcome_0.3prob = ifelse(termd > 0.426, "1", "0"),     # set prob cut-off > 0.426
          outcome_0.3prob = as.factor(outcome_0.3prob))
 
 
@@ -1746,15 +1749,14 @@ confusionMatrix(knn_finaldf$outcome_0.3prob,
 
 ```
 
-Now, when I use the KNN model to make the class prediction again at a new probability threshold of 0.329 instead of 0.5:
+Now, when I use the KNN model to make the class prediction again at a new probability threshold of **0.426** instead of 0.5:
 
-* Accuracy rate increases slightly from 73% to 77.4%  
+* Overall accuracy rate increases slightly from 76.3% to 77.4%.  
 
-* Sensitivity rate increase drastically from 29% to 100%, (now it is more accurate to predict who is leaving)    
+* Sensitivity rate increases drastically from 38.7% to 64.5% (now it is more accurate to predict who is leaving).       
 
-* Specificity rate drops from 98% to 66%. It was expense to optimise sensitivity. Specificity is to predict who is not leaving and is not the most interest metric in this project.  
+* Specificity rate drops from 95.2% to 83.9%. Specificity is to predict who is not leaving and is not the most interest metric in this project.  
 
-Two other algorithms will be fitted subsequently and compared to these results of KNN.
 
 ##### (ii) Support Vector Machine 
 
@@ -1794,6 +1796,7 @@ pred_svmPoly <- model_svmPoly %>% predict(test.set)
 table(pred_svmPoly)
 
 ```
+
 The model predicted 63 employees from the test set are current employees (0) and 30 have left (1). I have actually the actual data that whether the predictions on each employee by the SVM model are correct or incorrect, and it will be displayed in confusion matrix below:
 
 ```{r}
@@ -1805,9 +1808,9 @@ ROC doesn't work for SVM-radial as there is no predicted probabilities of each o
 
 The predictive power of Support Vector Machine is actually very well.   
 
-* The accuracy is 95%   
-* The sensitivity is very good at 90%, and it is our metric of interest    
-* The specificity is very high at 97%    
+* The accuracy is 89.3%   
+* The sensitivity is very good at 77.4%, and it is our metric of interest    
+* The specificity is very high at 95.2%    
 * The sensitivity and specificity are quite close to each other, and therefore the accuracy rate is not miss-leading  
 
 
@@ -1830,10 +1833,11 @@ model_rf <- train(Termd~., data = train.set,
 
 ```
 
-Following shows the optimal number of predictors ((mtry) randomly sampled as candidates at each split. The best mtry will be the one that maximise the accuracy.
+Following shows the optimal number of predictors (mtry) randomly sampled as candidates at each split. The best mtry will be the one that maximise the accuracy.
 
 ```{r}
 plot(model_rf)
+
 ```
 The optimal mtry is 45. 
 
@@ -1847,6 +1851,7 @@ Following shows the description of the final random forest model that will be us
 model_rf$finalModel
 
 ```
+
 The random forest is able to produce us an "Important Plot" that telling which variables are very important when making the prediction. "Years_works" is well ahead of all other variables, and it is saying that this variable is very related when predicting whether an employee will leave a company. Important to note that it is not saying that the longer years of work, an employee will more likely to leave the company, it is only stating that the variable is important and if certain years of working is achieved such as 1 year or 2 years, an employee may leave at a higher chance. 
 
 ```{r, fig.height=5}
@@ -1854,7 +1859,7 @@ plot(varImp(model_rf),top = 20)
 
 ```
 
-Following graph completes the first round of random forest prediction with probability cut-off point at 0.50. The result is amazing, it has a accuracy rate of 96%, 98% rate of specificity, but slightly lower of sensitivity at 90.3%. I will now tune the probability cut-off point and see what level is the best. 
+Following graph completes the first round of random forest prediction with probability cut-off point at 0.50. The result is amazing, it has a accuracy rate of 95.7%, 87.1% of sensitivity rate, and 100% of specificity rate.
 
 ```{r}
 pred_rf <- model_rf %>% predict(test.set)
@@ -1862,7 +1867,7 @@ pred_rf <- model_rf %>% predict(test.set)
 confusionMatrix(pred_rf, test.set$Termd, positive = "1")
 
 ```
-Applying the technique of ROC-AUC, there are two best probability cut-off points! It might be a rare case. I will pick 0.318 because both sensitivity 97% and 93.5% are the most balanced. 
+I will now tune the probability cut-off point and see what level is the best. Applying the technique of ROC-AUC, there are two best probability cut-off points! It might be a rare case. I will pick 0.286 because sensitivity is higher (sensitivity is the most interested metric in the case of this prediction).
 
 ```{r}
 
@@ -1879,14 +1884,14 @@ plot.roc(res.roc.rf,
 
 ```
 
-Making prediction again using the test set but with 0.405 probability cut off point.
+Making prediction again using the test set but with 0.286 probability cut off point.
 
 ```{r}
 
 rf.df <- pred_rf_prob %>% 
       dplyr::select("1") %>% 
   rename("termd" = "1") %>% 
-  mutate(outcome_0.3prob = ifelse(termd > 0.318, "1", "0"),
+  mutate(outcome_0.3prob = ifelse(termd > 0.286, "1", "0"),   # set prob cut-off > 0.286
          outcome_0.3prob = as.factor(outcome_0.3prob))
 
 confusionMatrix(rf.df$outcome_0.3prob,
@@ -1896,8 +1901,9 @@ confusionMatrix(rf.df$outcome_0.3prob,
 
 ```
 
-In a conclusion for this section, Random Forest with 0.405 probability cut-off point is the best algorithm to be used to make the prediction because it has the second highest accuracy rate at 93.5% but a more balanced ratio between sensitivity and specificity and therefore the overall accuracy rate is more representative and not misleading. One can definitely pick the more extreme predictive power of KNN model if it is more desired, it has 100% accuracy rate but a low specificity rate of 66%. 
+In a conclusion for this section, Random Forest with 0.286 probability cut-off point is the best algorithm to be used to make the prediction. 
 
+Compared to KNN and SVM, it has the highest overall accuracy rate at 95.7% and it is not misleading because but the ratio between sensitivity and specificity is balanced. Both of the sensitivity and specificity are also at excellent levels of 93.5% and 96.7%
 
 
 ## 9 CONCLUSION
@@ -1922,7 +1928,7 @@ Applying regression model for inferential purposes, there is no statistical evid
 
 In the analysis, most of the employees who left the company has high performance score of "Fully Meets", they were even satisfied with their job. Most of them were also highly engaging, did not late to work and could be a new or an old employees. Their top reasons were "change to other position", "unhappy", and "more money". 
 
-Polynomial kernel Support Vactor Machine (SVM), ROC-AUC tuned K-Nearest Neighbor (KNN), and Random Forest models were tested and the result shows that the Random Forest model with 0.405 probability cut-off point is the best algorithm for us to make prediction for who is leaving the company. It has a reliable overall accuracy rate at 95.6%, sensitivity rate of 93.5% (the metric that we are most interested in) and specificity rate of 96.9%.
+Polynomial kernel Support Vactor Machine (SVM), ROC-AUC tuned K-Nearest Neighbor (KNN), and Random Forest models were implemented and the result shows that the Random Forest model with 0.286 probability cut-off point is the best algorithm for us to make prediction for who is leaving the company. It has a reliable overall accuracy rate at 95.7%, sensitivity rate of 93.5% (the metric that we are most interested in) and specificity rate of 96.7%.
 
 
 
