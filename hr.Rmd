@@ -1,7 +1,7 @@
 ---
 title: "Human Resources Data Mining"
 author: "Kar Ng"
-date: '2022-07'
+date: '2022-06'
 output: 
   github_document: 
     toc: true

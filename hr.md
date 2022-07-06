@@ -1,7 +1,7 @@
 Human Resources Data Mining
 ================
 Kar Ng
-2022-07
+2022-06
 
 -   [1 SUMMARY](#1-summary)
 -   [2 R PACKAGES](#2-r-packages)
