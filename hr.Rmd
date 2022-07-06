@@ -1,7 +1,7 @@
 ---
 title: "Human Resources Data Mining"
 author: "Kar Ng"
-date: '2022-05'
+date: '2022-07'
 output: 
   github_document: 
     toc: true
@@ -1180,7 +1180,7 @@ The goal of this question is to detect unequal pay among who does the same job. 
 
 Two parts in this analysis: (1) Visual exploration, (2) Regression
 
-#### 8.4.1 Visual Exploration**
+#### 8.4.1 Visual Exploration
 
 Following are selected variables that are relevant to achieve the goal of this section. 
 

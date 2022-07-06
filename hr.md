@@ -1,7 +1,7 @@
 Human Resources Data Mining
 ================
 Kar Ng
-2022-05
+2022-07
 
 -   [1 SUMMARY](#1-summary)
 -   [2 R PACKAGES](#2-r-packages)
@@ -45,7 +45,7 @@ Kar Ng
             (MCA)](#833-multiple-correspondence-analysis-mca)
     -   [8.4 Are there areas of the company where pay is not
         equitable?](#84-are-there-areas-of-the-company-where-pay-is-not-equitable)
-        -   [8.4.1 Visual Exploration\*\*](#841-visual-exploration)
+        -   [8.4.1 Visual Exploration](#841-visual-exploration)
         -   [8.4.2 Statistical Analysis](#842-statistical-analysis)
         -   [8.4.3 Regression](#843-regression)
     -   [8.5 Can we predict who is going to terminate and who isn’t?
@@ -896,27 +896,27 @@ employee in the dataset.
 hr2$years_worked
 ```
 
-    ##   [1] 11.0  1.2  1.2 14.5  5.2 10.5  7.6  8.7 13.0  7.5  6.0  4.5  7.6 10.3  4.5
-    ##  [16]  6.5  5.9 11.2  1.2  9.0 10.2  8.8  8.0 11.2  3.2  2.0  7.3  0.9  1.2 13.7
-    ##  [31]  7.7  8.6  3.0 10.3 11.2 10.9  6.4  8.6  8.2  6.0  7.8  7.7  5.8  8.1  9.0
-    ##  [46] 10.1  4.4 10.7  9.8  1.6  1.1  6.0  9.0  5.2 11.9 13.5  7.5  7.2  6.0  7.6
-    ##  [61]  8.1  7.6 10.0 10.6  4.0  5.1 10.5  7.7  4.6  8.0  5.3  8.1 10.3  9.5 10.2
-    ##  [76]  7.5  8.5 11.5  7.8 12.2  6.2  7.6  8.2  8.0  6.5  4.0  2.1  8.0  8.3  4.5
-    ##  [91]  7.1  7.2 10.5  2.1  1.8  3.9 11.2 13.5 10.8 12.1  7.2 11.1  7.2  5.0  1.2
-    ## [106]  3.2  7.7  7.3  0.1  7.2  8.6 11.0  1.1  7.5  8.1 10.0  8.7  8.8  7.1  2.9
-    ## [121]  5.2  2.7 10.6  8.6  3.9  8.1  9.9  2.4  7.8  0.6  7.2  8.1  0.2 10.3  6.0
-    ## [136]  7.0  2.1  1.6  8.8  9.6  8.7 11.0  8.5  6.5  7.5  8.0  5.2  2.5  8.7  8.8
-    ## [151] 10.0  3.7  2.3  8.3 11.5 11.3  7.6  4.9  1.2 10.0  8.5  1.0  5.7  6.9  6.5
-    ## [166] 10.1 10.1  8.7  7.2  9.0 11.4  3.2  8.8  7.3  4.0  5.0  8.5  6.1  1.1  8.6
-    ## [181]  8.6 11.1  7.2  9.5  6.0  4.6  7.2  9.9  3.1 10.6 10.4  9.1 10.5  7.3  9.2
-    ## [196]  9.1  9.0  5.4  2.5  3.2  8.1  9.2  9.0  9.0  7.6  4.1  1.3  8.7  8.7  8.3
-    ## [211]  7.5  2.9  3.8  1.4  7.0  4.2  4.4  1.7  5.6 10.2  7.6  1.4 14.6 10.5  7.1
-    ## [226]  8.5  0.7  4.5  5.7  6.5  8.1  4.7 10.6  0.1  0.6  5.0  5.4  9.0  7.3  3.8
-    ## [241]  5.5  8.5  7.4  9.4  3.8  9.6  6.0  9.6 11.8  0.8  7.7  8.7  7.7  8.8  7.5
-    ## [256]  7.1  5.5  7.7  8.1  2.0  8.6 11.0  6.0 10.3  9.7  2.1 11.5  8.1  7.7  8.3
-    ## [271] 11.7 13.5  7.5 10.1  8.0  5.2  3.9  6.2  7.7  5.2  3.2  9.3 16.5  8.3  1.1
-    ## [286]  5.2  3.5  7.2 11.0  3.5 10.9 10.3  2.0  4.4  7.0  7.8  0.3  3.1  5.3  7.2
-    ## [301]  3.3  4.3  1.3  3.5  3.1  7.7  8.0  7.1 12.2  7.2  7.7
+    ##   [1] 11.0  1.2  1.2 14.5  5.2 10.5  7.7  8.8 13.0  7.5  6.0  4.5  7.7 10.4  4.5
+    ##  [16]  6.5  6.0 11.3  1.2  9.0 10.3  8.9  8.0 11.3  3.2  2.0  7.4  0.9  1.2 13.7
+    ##  [31]  7.8  8.7  3.0 10.3 11.3 10.9  6.4  8.7  8.3  6.0  7.9  7.8  5.8  8.2  9.0
+    ##  [46] 10.2  4.4 10.8  9.8  1.6  1.1  6.0  9.0  5.2 12.0 13.5  7.5  7.3  6.0  7.7
+    ##  [61]  8.2  7.7 10.0 10.7  4.0  5.1 10.5  7.8  4.6  8.0  5.4  8.2 10.4  9.5 10.3
+    ##  [76]  7.5  8.5 11.5  7.8 12.2  6.2  7.7  8.3  8.0  6.5  4.0  2.1  8.0  8.4  4.5
+    ##  [91]  7.2  7.3 10.5  2.1  1.8  3.9 11.2 13.5 10.8 12.2  7.3 11.1  7.3  5.0  1.2
+    ## [106]  3.2  7.8  7.4  0.1  7.3  8.7 11.0  1.1  7.5  8.2 10.0  8.8  8.9  7.1  2.9
+    ## [121]  5.2  2.7 10.6  8.7  3.9  8.2  9.9  2.4  7.9  0.6  7.3  8.2  0.2 10.4  6.1
+    ## [136]  7.1  2.1  1.6  8.9  9.7  8.8 11.0  8.5  6.5  7.5  8.0  5.2  2.5  8.8  8.9
+    ## [151] 10.0  3.7  2.3  8.4 11.5 11.3  7.7  4.9  1.2 10.0  8.5  1.0  5.8  6.9  6.5
+    ## [166] 10.2 10.2  8.8  7.2  9.0 11.5  3.2  8.9  7.4  4.0  5.0  8.5  6.2  1.1  8.7
+    ## [181]  8.7 11.1  7.3  9.5  6.0  4.6  7.3  9.9  3.1 10.7 10.4  9.2 10.5  7.4  9.3
+    ## [196]  9.2  9.0  5.4  2.5  3.2  8.2  9.3  9.0  9.0  7.7  4.1  1.3  8.8  8.8  8.4
+    ## [211]  7.5  2.9  3.8  1.4  7.0  4.2  4.4  1.7  5.6 10.3  7.7  1.4 14.7 10.5  7.1
+    ## [226]  8.5  0.7  4.5  5.8  6.5  8.2  4.7 10.6  0.1  0.6  5.0  5.4  9.0  7.4  3.8
+    ## [241]  5.5  8.5  7.4  9.5  3.8  9.7  6.0  9.6 11.9  0.8  7.8  8.8  7.8  8.9  7.5
+    ## [256]  7.2  5.5  7.8  8.1  2.0  8.7 11.1  6.0 10.4  9.8  2.1 11.5  8.2  7.8  8.4
+    ## [271] 11.8 13.5  7.5 10.2  8.0  5.2  3.9  6.2  7.8  5.2  3.2  9.4 16.5  8.4  1.1
+    ## [286]  5.2  3.5  7.3 11.0  3.5 10.9 10.3  2.0  4.4  7.0  7.9  0.3  3.1  5.4  7.3
+    ## [301]  3.3  4.3  1.3  3.5  3.1  7.8  8.0  7.1 12.2  7.3  7.8
 
 The distribution:
 
@@ -1018,7 +1018,7 @@ str(hr2 %>%
     ##  $ Salary              : int  62506 104437 64955 64991 50825 57568 95660 59365 47837 50178 ...
     ##  $ Termd               : int  0 1 1 0 1 0 0 0 0 0 ...
     ##  $ Age                 : num  40 48 35 35 34 46 44 40 53 35 ...
-    ##  $ years_worked        : num  11 1.2 1.2 14.5 5.2 10.5 7.6 8.7 13 7.5 ...
+    ##  $ years_worked        : num  11 1.2 1.2 14.5 5.2 10.5 7.7 8.8 13 7.5 ...
     ##  $ EngagementSurvey    : num  4.6 4.96 3.02 4.84 5 5 3.04 5 4.46 5 ...
     ##  $ EmpSatisfaction     : int  5 3 3 5 4 5 3 4 3 5 ...
     ##  $ SpecialProjectsCount: int  0 6 0 0 0 0 4 0 0 6 ...
@@ -1666,10 +1666,10 @@ years_worked
 1
 </td>
 <td style="text-align:right;">
-7.03
+7.07
 </td>
 <td style="text-align:right;">
-3.21
+3.23
 </td>
 <td style="text-align:right;">
 0.10
@@ -1678,7 +1678,7 @@ years_worked
 4.80
 </td>
 <td style="text-align:right;">
-7.60
+7.70
 </td>
 <td style="text-align:right;">
 9.0
@@ -2202,7 +2202,7 @@ summary(gower.dis)
 
     ## 48205 dissimilarities, summarized :
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##  0.0402  0.3629  0.4471  0.4475  0.5310  0.8592 
+    ## 0.04051 0.36285 0.44717 0.44752 0.53110 0.85923 
     ## Metric :  mixed ;  Types = I, N, N, N, I, N, N, N, N, N, I, N, N, N, N, N, N, I, N, I, I, I 
     ## Number of objects : 311
 
@@ -2223,7 +2223,7 @@ hr2[which(gower_mat == min(gower_mat[gower_mat != min(gower_mat)]),   # min for 
     ## Hudson  Jane       55425     0 Production Technician I    MA  37   F
     ##                   MaritalDesc CitizenDesc HispanicLatino RaceDesc years_worked
     ## Mahoney  Lauren        Single  US Citizen             No    White          8.5
-    ## Hudson  Jane           Single  US Citizen             No    White         10.3
+    ## Hudson  Jane           Single  US Citizen             No    White         10.4
     ##                          TermReason EmploymentStatus Department   ManagerName
     ## Mahoney  Lauren   N/A-StillEmployed           Active Production Ketsia Liebig
     ## Hudson  Jane      N/A-StillEmployed           Active Production Ketsia Liebig
@@ -2249,7 +2249,7 @@ hr2[which(gower_mat == max(gower_mat[gower_mat != max(gower_mat)]),   # max for 
     ## Dietrich  Jenna    US Citizen            Yes                     White
     ##                   years_worked        TermReason       EmploymentStatus
     ## Quinn  Sean                4.5     career change Voluntarily Terminated
-    ## Dietrich  Jenna           10.3 N/A-StillEmployed                 Active
+    ## Dietrich  Jenna           10.4 N/A-StillEmployed                 Active
     ##                             Department ManagerName  RecruitmentSource
     ## Quinn  Sean       Software Engineering  Janet King Diversity Job Fair
     ## Dietrich  Jenna                  Sales  John Smith            Website
@@ -2304,8 +2304,8 @@ for (i in 2:10) {
 sil_df
 ```
 
-    ##  [1]         NA 0.25943063 0.10368099 0.10533245 0.10610706 0.08910545
-    ##  [7] 0.08380167 0.07505053 0.07848610 0.07500276
+    ##  [1]         NA 0.25968518 0.10448514 0.10603126 0.10652674 0.08910004
+    ##  [7] 0.08381298 0.07505734 0.07849953 0.07501388
 
 Plot the result:
 
@@ -2382,8 +2382,8 @@ summary(cluster1_stat[, -1])
     ##  American Indian or Alaska Native:  3   Min.   : 2.000  
     ##  Asian                           : 20   1st Qu.: 7.500  
     ##  Black or African American       : 53   Median : 8.500  
-    ##  Hispanic                        :  1   Mean   : 8.696  
-    ##  Two or more races               : 10   3rd Qu.:10.125  
+    ##  Hispanic                        :  1   Mean   : 8.752  
+    ##  Two or more races               : 10   3rd Qu.:10.225  
     ##  White                           :125   Max.   :16.500  
     ##                                                         
     ##                          TermReason                EmploymentStatus
@@ -3091,7 +3091,7 @@ received different amount of pay compared to other majority.
 
 Two parts in this analysis: (1) Visual exploration, (2) Regression
 
-#### 8.4.1 Visual Exploration\*\*
+#### 8.4.1 Visual Exploration
 
 Following are selected variables that are relevant to achieve the goal
 of this section.
@@ -3346,50 +3346,50 @@ summary(model_lm)
     ## 
     ## Residuals:
     ##    Min     1Q Median     3Q    Max 
-    ## -13833  -4166      0   4389  14952 
+    ## -13838  -4165      0   4388  14951 
     ## 
     ## Coefficients: (5 not defined because of singularities)
     ##                                       Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)                           64053.95    5571.58  11.497  < 2e-16 ***
-    ## PositionAdministrative Assistant     -12058.29    5185.12  -2.326  0.02078 *  
-    ## PositionArea Sales Manager             1328.25    3851.75   0.345  0.73048    
-    ## PositionBI Developer                  31543.58    4794.88   6.579 2.44e-10 ***
-    ## PositionBI Director                   46931.37    7266.85   6.458 4.88e-10 ***
-    ## PositionCIO                          157423.34    7253.60  21.703  < 2e-16 ***
-    ## PositionData Analyst                  25986.96    4262.79   6.096 3.72e-09 ***
-    ## PositionData Architect                85182.18    7257.23  11.738  < 2e-16 ***
-    ## PositionDatabase Administrator        44324.18    4667.87   9.496  < 2e-16 ***
-    ## PositionDirector of Operations       106993.67    7220.74  14.818  < 2e-16 ***
-    ## PositionDirector of Sales            115848.34    7298.79  15.872  < 2e-16 ***
-    ## PositionEnterprise Architect          37821.72    7320.26   5.167 4.63e-07 ***
-    ## PositionIT Director                  114076.56    7211.83  15.818  < 2e-16 ***
-    ## PositionIT Manager - DB               80404.06    5757.56  13.965  < 2e-16 ***
-    ## PositionIT Manager - Infra            94169.36    7334.67  12.839  < 2e-16 ***
-    ## PositionIT Manager - Support          74151.97    7237.46  10.246  < 2e-16 ***
-    ## PositionIT Support                      629.29    4280.51   0.147  0.88323    
-    ## PositionNetwork Engineer              -1968.05    4620.22  -0.426  0.67047    
-    ## PositionPresident & CEO              186357.94    7535.34  24.731  < 2e-16 ***
-    ## PositionPrincipal Data Architect      56583.84    7440.35   7.605 4.70e-13 ***
-    ## PositionProduction Manager            10420.65    4071.93   2.559  0.01104 *  
-    ## PositionProduction Technician I       -8332.45    3700.61  -2.252  0.02515 *  
-    ## PositionProduction Technician II        833.15    3774.39   0.221  0.82546    
-    ## PositionSales Manager                  5674.50    5125.57   1.107  0.26923    
-    ## PositionSenior BI Developer           19395.66    5307.56   3.654  0.00031 ***
-    ## PositionShared Services Manager       29728.00    7235.22   4.109 5.27e-05 ***
-    ## PositionSoftware Engineer             32692.58    4130.19   7.916 6.34e-14 ***
-    ## PositionSoftware Engineering Manager  13988.56    7284.39   1.920  0.05586 .  
-    ## PositionSr. Accountant                39345.95    5714.74   6.885 4.02e-11 ***
-    ## PositionSr. DBA                       37866.52    5747.98   6.588 2.31e-10 ***
-    ## PositionSr. Network Engineer          28548.78    4660.96   6.125 3.18e-09 ***
-    ## Age                                      49.85      43.95   1.134  0.25770    
-    ## SexM                                   -122.50     757.39  -0.162  0.87164    
-    ## HispanicLatinoYes                      -886.77    1380.63  -0.642  0.52123    
-    ## RaceDescAsian                          -106.11    3888.88  -0.027  0.97825    
-    ## RaceDescBlack or African American      -848.65    3755.73  -0.226  0.82140    
-    ## RaceDescHispanic                       9259.65    7587.39   1.220  0.22337    
-    ## RaceDescTwo or more races             -2842.67    4102.39  -0.693  0.48895    
-    ## RaceDescWhite                         -1801.45    3706.47  -0.486  0.62734    
-    ## years_worked                           -116.33     122.93  -0.946  0.34483    
+    ## (Intercept)                           64065.86    5570.53  11.501  < 2e-16 ***
+    ## PositionAdministrative Assistant     -12061.09    5184.11  -2.327 0.020727 *  
+    ## PositionArea Sales Manager             1329.48    3851.52   0.345 0.730224    
+    ## PositionBI Developer                  31544.24    4794.04   6.580 2.42e-10 ***
+    ## PositionBI Director                   46926.72    7266.67   6.458 4.89e-10 ***
+    ## PositionCIO                          157419.18    7253.10  21.704  < 2e-16 ***
+    ## PositionData Analyst                  25989.02    4261.88   6.098 3.69e-09 ***
+    ## PositionData Architect                85176.68    7257.07  11.737  < 2e-16 ***
+    ## PositionDatabase Administrator        44320.04    4667.24   9.496  < 2e-16 ***
+    ## PositionDirector of Operations       106991.41    7220.11  14.819  < 2e-16 ***
+    ## PositionDirector of Sales            115854.97    7298.37  15.874  < 2e-16 ***
+    ## PositionEnterprise Architect          37816.59    7319.66   5.166 4.63e-07 ***
+    ## PositionIT Director                  114073.71    7211.49  15.818  < 2e-16 ***
+    ## PositionIT Manager - DB               80405.77    5757.08  13.966  < 2e-16 ***
+    ## PositionIT Manager - Infra            94165.80    7334.39  12.839  < 2e-16 ***
+    ## PositionIT Manager - Support          74148.58    7237.28  10.245  < 2e-16 ***
+    ## PositionIT Support                      630.45    4280.35   0.147 0.883013    
+    ## PositionNetwork Engineer              -1963.97    4619.25  -0.425 0.671049    
+    ## PositionPresident & CEO              186353.41    7534.99  24.732  < 2e-16 ***
+    ## PositionPrincipal Data Architect      56577.05    7440.18   7.604 4.72e-13 ***
+    ## PositionProduction Manager            10418.46    4071.72   2.559 0.011049 *  
+    ## PositionProduction Technician I       -8333.44    3700.36  -2.252 0.025119 *  
+    ## PositionProduction Technician II        832.27    3773.77   0.221 0.825615    
+    ## PositionSales Manager                  5672.83    5125.17   1.107 0.269337    
+    ## PositionSenior BI Developer           19398.15    5306.62   3.655 0.000308 ***
+    ## PositionShared Services Manager       29723.26    7235.06   4.108 5.29e-05 ***
+    ## PositionSoftware Engineer             32692.12    4129.78   7.916 6.31e-14 ***
+    ## PositionSoftware Engineering Manager  13985.53    7284.02   1.920 0.055904 .  
+    ## PositionSr. Accountant                39347.21    5714.57   6.885 4.01e-11 ***
+    ## PositionSr. DBA                       37860.64    5747.66   6.587 2.32e-10 ***
+    ## PositionSr. Network Engineer          28553.38    4660.34   6.127 3.14e-09 ***
+    ## Age                                      49.83      43.95   1.134 0.257911    
+    ## SexM                                   -123.69     757.40  -0.163 0.870398    
+    ## HispanicLatinoYes                      -886.44    1380.57  -0.642 0.521364    
+    ## RaceDescAsian                          -109.30    3888.82  -0.028 0.977599    
+    ## RaceDescBlack or African American      -852.23    3755.70  -0.227 0.820660    
+    ## RaceDescHispanic                       9254.67    7587.07   1.220 0.223603    
+    ## RaceDescTwo or more races             -2846.72    4102.36  -0.694 0.488326    
+    ## RaceDescWhite                         -1804.60    3706.40  -0.487 0.626733    
+    ## years_worked                           -116.62     122.08  -0.955 0.340298    
     ## DepartmentExecutive Office                  NA         NA      NA       NA    
     ## DepartmentIT/IS                             NA         NA      NA       NA    
     ## DepartmentProduction                        NA         NA      NA       NA    
@@ -4156,8 +4156,8 @@ will be automatically picked in the algorithm when making prediction
 model_svmPoly$bestTune
 ```
 
-    ##    degree scale C
-    ## 24      2  0.01 2
+    ##    degree scale    C
+    ## 13      1     1 0.25
 
 Making predictions on the test set, and following are the results:
 
@@ -4168,7 +4168,7 @@ table(pred_svmPoly)
 
     ## pred_svmPoly
     ##  0  1 
-    ## 66 27
+    ## 63 30
 
 The model predicted 63 employees from the test set are current employees
 (0) and 30 have left (1). I have actually the actual data that whether
@@ -4183,26 +4183,26 @@ confusionMatrix(pred_svmPoly, test.set$Termd, positive = "1")
     ## 
     ##           Reference
     ## Prediction  0  1
-    ##          0 59  7
-    ##          1  3 24
+    ##          0 58  5
+    ##          1  4 26
     ##                                           
-    ##                Accuracy : 0.8925          
-    ##                  95% CI : (0.8111, 0.9472)
+    ##                Accuracy : 0.9032          
+    ##                  95% CI : (0.8242, 0.9548)
     ##     No Information Rate : 0.6667          
-    ##     P-Value [Acc > NIR] : 4.309e-07       
+    ##     P-Value [Acc > NIR] : 9.935e-08       
     ##                                           
-    ##                   Kappa : 0.75            
+    ##                   Kappa : 0.7805          
     ##                                           
-    ##  Mcnemar's Test P-Value : 0.3428          
+    ##  Mcnemar's Test P-Value : 1               
     ##                                           
-    ##             Sensitivity : 0.7742          
-    ##             Specificity : 0.9516          
-    ##          Pos Pred Value : 0.8889          
-    ##          Neg Pred Value : 0.8939          
+    ##             Sensitivity : 0.8387          
+    ##             Specificity : 0.9355          
+    ##          Pos Pred Value : 0.8667          
+    ##          Neg Pred Value : 0.9206          
     ##              Prevalence : 0.3333          
-    ##          Detection Rate : 0.2581          
-    ##    Detection Prevalence : 0.2903          
-    ##       Balanced Accuracy : 0.8629          
+    ##          Detection Rate : 0.2796          
+    ##    Detection Prevalence : 0.3226          
+    ##       Balanced Accuracy : 0.8871          
     ##                                           
     ##        'Positive' Class : 1               
     ## 
@@ -4275,11 +4275,11 @@ model_rf$finalModel
     ##                      Number of trees: 500
     ## No. of variables tried at each split: 45
     ## 
-    ##         OOB estimate of  error rate: 4.13%
+    ##         OOB estimate of  error rate: 3.21%
     ## Confusion matrix:
     ##     0  1 class.error
     ## 0 143  2  0.01379310
-    ## 1   7 66  0.09589041
+    ## 1   5 68  0.06849315
 
 The random forest is able to produce us an “Important Plot” that telling
 which variables are very important when making the prediction.
@@ -4382,28 +4382,28 @@ confusionMatrix(rf.df$outcome_0.3prob,
     ## 
     ##           Reference
     ## Prediction  0  1
-    ##          0 60  2
-    ##          1  2 29
-    ##                                           
-    ##                Accuracy : 0.957           
-    ##                  95% CI : (0.8935, 0.9882)
-    ##     No Information Rate : 0.6667          
-    ##     P-Value [Acc > NIR] : 8.398e-12       
-    ##                                           
-    ##                   Kappa : 0.9032          
-    ##                                           
-    ##  Mcnemar's Test P-Value : 1               
-    ##                                           
-    ##             Sensitivity : 0.9355          
-    ##             Specificity : 0.9677          
-    ##          Pos Pred Value : 0.9355          
-    ##          Neg Pred Value : 0.9677          
-    ##              Prevalence : 0.3333          
-    ##          Detection Rate : 0.3118          
-    ##    Detection Prevalence : 0.3333          
-    ##       Balanced Accuracy : 0.9516          
-    ##                                           
-    ##        'Positive' Class : 1               
+    ##          0 59  2
+    ##          1  3 29
+    ##                                          
+    ##                Accuracy : 0.9462         
+    ##                  95% CI : (0.879, 0.9823)
+    ##     No Information Rate : 0.6667         
+    ##     P-Value [Acc > NIR] : 7.665e-11      
+    ##                                          
+    ##                   Kappa : 0.88           
+    ##                                          
+    ##  Mcnemar's Test P-Value : 1              
+    ##                                          
+    ##             Sensitivity : 0.9355         
+    ##             Specificity : 0.9516         
+    ##          Pos Pred Value : 0.9063         
+    ##          Neg Pred Value : 0.9672         
+    ##              Prevalence : 0.3333         
+    ##          Detection Rate : 0.3118         
+    ##    Detection Prevalence : 0.3441         
+    ##       Balanced Accuracy : 0.9435         
+    ##                                          
+    ##        'Positive' Class : 1              
     ## 
 
 In a conclusion for this section, Random Forest with 0.286 probability
